@@ -1,0 +1,67 @@
+License Summary
+---------------
+
+This project uses a **custom Business Source License (BSL 1.1)** by Justin Ludwig.
+
+**You can:**
+
+* Use the hosted version of this calculator for free, for personal or educational use.  
+* Suggest improvements or fixes through pull requests.  
+* Share links to the official hosted version.
+
+**You can’t:**
+
+* Copy, redistribute, or host this source code anywhere else.  
+* Use or modify this code for any commercial purpose without permission.  
+* Rebrand or re-release this project as your own.
+
+**Rights and ownership:**
+
+* Copyright © 2025 Justin Ludwig. All rights reserved.  
+* The author retains full ownership of the project and its code.  
+* Commercial or derivative use requires written permission.  
+  Contact: [justinludwiguxe@gmail.com](mailto:justinludwiguxe@gmail.com)
+
+
+Business Source License 1.1
+
+Parameters
+Licensor: Justin Ludwig
+Licensed Work: Etsy Fee & Pricing Calculator
+Additional Use Grant: Permission is granted for anyone to access and use the public, hosted version 
+of this calculator (the “Service”) for personal or educational purposes.
+Change Date: None (this software will not automatically convert to an open source license)
+License Termination: Any reproduction, redistribution, or hosting of the Licensed Work’s source 
+code without explicit written permission from the Licensor is prohibited.
+
+License Text
+The Licensed Work is made available under the terms of the Business Source License 1.1, 
+available at https://mariadb.com/bsl11.
+
+Usage Rights
+You may use the publicly available version of the Licensed Work (the “Service”) to calculate fees, 
+prices, or other outputs for personal or educational use.  
+You may not copy, distribute, host, embed, or otherwise reuse the Licensed Work’s source code 
+in any other project, website, or application, whether for commercial or noncommercial purposes, 
+without written permission from the Licensor.
+
+Contributions
+You may submit improvements, bug fixes, or feature suggestions through GitHub pull requests, 
+which may be incorporated into the main project at the Licensor’s discretion.  
+By submitting a contribution, you grant the Licensor the right to use and distribute your 
+contribution under this same license.  
+All rights, title, and interest in the Licensed Work, including derivative works, remain with the Licensor.
+
+Commercial Use
+Commercial use of the Licensed Work, or any modified version, requires a separate commercial 
+license agreement with the Licensor.  
+To request such permission, contact: justinludwiguxe@gmail.com
+
+Warranty Disclaimer
+THE LICENSED WORK IS PROVIDED “AS IS” AND WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, 
+AND NON-INFRINGEMENT. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+LIABILITY ARISING FROM THE USE OR DISTRIBUTION OF THE LICENSED WORK.
+
+Copyright (c) 2025 Justin Ludwig
+All rights reserved.

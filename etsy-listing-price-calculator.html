@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!--
+	Copyright © 2025 Justin Ludwig. All rights reserved.
+	Licensed under the Business Source License 1.1 (BSL).
+	See LICENSE file in the project root for details.
+	
+	You may not copy, distribute, or use this code commercially
+	without explicit permission from the author.
+-->
+<!--
+	//todo: setup git repo
+	//todo: style the page - make it remind of etsy style, but not so much that it can confuse
+	//todo: reword onpage text
+	//todo: clean up html formatting
+	//todo: comment js
+	//todo: check if radio changes could be handled better
+	//todo: proper <head>
+	//todo: break apart style and scripts into own files? it's already going to be decently small, but best practices
+	//todo: accessibilty improvements
+	//todo: save product setups to localstorage so they can be easily opened up
+	//todo: fill out readme
+	//todo: other github files
+	//todo: once ready host on github pages
+-->	
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Listing Price Calculator for Etsy Sellers</title>
+	<style>
+		.template {display:none;}
+		form, aside {display:inline-block;width:49%;vertical-align: top;}
+	</style>
+</head>
+<body>
+	
+	<form>
+		<fieldset id="expenses">
+			<legend>expenses</legend>
+			<p>add the materials you used, as well as different things you'll need for packaging as those costs can add up</p>
+			<ul id="expenses-list">
+				<li class="template">
+					<input type="text" placeholder="expense name">
+					<input type="number" step="0.01" placeholder="0.00">
+					<button type="button" onclick="removeItem(event);">-</button>
+				</li>
+				
+			</ul>
+			<button type="button" onclick="addItem(expensesList);">+add expense</button>
+			<div>Total Expenses: $<span id="expenses-total" class="amount-display">0.00</span></div>
+		</fieldset>
+		
+		<fieldset id="labor">
+			<legend>labor</legend>
+			<p>this will make up your net profit, don't forget to consider things like packaging and admin time. you can also add flat profits you'd like to get for an item.</p>
+			<ul id="labor-list">
+				<li class="template">
+					<input type="text" placeholder="labor name">
+					<label>hours<input type="number" class="labor-hours" step="0.01" placeholder="0.00"></label>
+					<label>rate<input type="number" class="labor-rate" step="0.01" placeholder="0.00"></label>
+					<span>Subtotal: $<span class="labor-subtotal">0.00</span></span>
+					<button type="button" onclick="removeItem(event);">-</button>
+				</li>
+				
+			</ul>
+			<button type="button" onclick="addItem(laborList);">+add labor type</button>
+			<div>Total Labor Cost: $<span id="labor-total" class="amount-display">0.00</span></div>
+		</fieldset>
+		<br/><br/>
+		<div>Product Value: $<span id="value-total" class="amount-display">0.00</span></div>
+		
+		
+	<br/><br/>
+		
+		
+		
+		<fieldset>
+			<legend>Etsy Fee Calculations</legend>
+			<p>The different fees that are applied to an Etsy order are as follows:<br/>
+				$0.20 flat listing fee<br/>
+				3% of order total (including sales tax) + $0.25 processing fee<br/>
+				6.5% of item total (listed price - minus any applied coupons) transaction fee<br/>
+				6.5% of shipping label total transaction fee</p>
+			<label>Shipping Label Cost Estimate<input type="number" id="shipping-label" step="0.01" placeholder="0.00"></label><br/>
+			<label>Sales Tax Estimate<input type="number" id="sales-tax" step="0.01" value="7.52">%</label><span>(while this varies state to state the national average is 7.52%)</span>
+		</fieldset>
+		
+		
+		
+		
+		<fieldset>
+			<legend>etsy offsite ad fees</legend>
+			
+			<label>ad rate<label><input type="radio" name="offsiteAdFee" value="0" checked>0%</label><label><input type="radio" name="offsiteAdFee" value="12">12%</label><label><input type="radio" name="offsiteAdFee" value="15">15%</label></label>
+			
+			<p>ad fees. etsy will automatically advertise your listing on your behalf across social media and other channels. if someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied, and you find out that happened sometime later. the percentage will be applied to the total purchase amount, including shipping, minus taxes.</p>
+			<p>if you made less than $10,000 in a year, your ad fee will be 15%. you can disable the external advertising to avoid this, however this option is also tied into search results and can severely limit your listings appearing in normal search results.</p>
+			<p>if you made more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
+			
+		</fieldset>
+		<fieldset>
+			<legend>income tax</legend>
+			<p>they say if you are going to be self employed you should prepare for around 30% tax on your net profits to cover federal and state, and if you're unlucky, city as well</p>
+			<label>income tax calculation<label><input type="radio" name="incomeTax" value="ignore" checked>ignore</label><label><input type="radio" name="incomeTax" value="view">view</label><label><input type="radio" name="incomeTax" value="factor">factor</label></label>
+			<label>tax rate<input type="number" id="income-tax-rate" step="0.01" value="30.00">%</label>
+		</fieldset>
+	</form>
+	<aside>
+		<h3>testing totals:</h3>
+		<div>suggested listing price $<span id="listing-price" class="amount-display">0.00</span></div>
+		
+		<h4>Estimated Totals:</h4>
+		<div>Listing Fee: $<span id="listing-fee-total" class="fee-total">0.20</span></div>
+		<div>Processing Fee: $<span id="processing-fee-total" class="fee-total amount-display">0.00</span></div>
+		<div>Transaction Fee: $<span id="transaction-fee-total" class="fee-total amount-display">0.00</span></div>
+		<div>Shipping Label Fee: $<span id="shipping-label-fee-total" class="fee-total amount-display">0.00</span></div>
+		<div>Offsite Ad Fee: $<span id="offsite-ad-fee-total" class="fee-total amount-display">0.00</span></div>
+		<div>Fees Total: $<span id="fees-total" class="amount-display">0.00</span></div>
+		<br/>
+		<div>Set aside for taxes: $<span id="income-tax-total" class="amount-display">0.00</span></div>
+		<br/>
+		<div>Total paid by customer: $<span id="customer-total" class="amount-display">0.00</span></div>
+		<div>Tax paid by customer: $<span id="tax-total" class="amount-display">0.00</span></div>
+	</aside>
+	
+	
+	<small>*i am not a tax accountant and this site can not be used as tax advice*</small>
+	<script type="text/javascript">
+		
+		function toCamelCase(str) {
+			return str.toLowerCase().replace(/[-_]+([a-z])/g, (_, letter) => letter.toUpperCase());
+		}
+		
+		function toKebabCase(str) {
+			return str.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
+		}
+		
+		//just want true numbers in the inputs
+		document.addEventListener('keydown', event => {
+			if(event.target.matches('input[type="number"]') && (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-')){
+				event.preventDefault();
+			}
+		});
+		
+		//force 2 decimal places in number inputs
+		document.addEventListener('blur', event => {
+			if (event.target.matches('input[type="number"]')) {
+				const value = parseFloat(event.target.value) || 0;
+				event.target.value = value.toFixed(2);
+			}
+		}, true);
+		
+		const round2 = n => Math.round(n * 100) / 100;
+		
+		const valueTotalDependencies = ['expensesTotal', 'laborTotal'];
+		const feeKeys = Array.from(document.querySelectorAll('.fee-total')).map(el => toCamelCase(el.id));
+		const totals = new Proxy({}, {
+			get(_, key) {
+				const id = toKebabCase(key);
+				const el = document.getElementById(id);
+				if (el) return parseFloat(el.textContent) || 0;
+				return 0;
+			},
+			set(_, key, value) {
+				const id = toKebabCase(key);
+				const el = document.getElementById(id);
+				if (el) el.textContent = Number(value).toFixed(2);
+		
+				//automatically recalc valueTotal if needed
+				if (valueTotalDependencies.includes(key)) {
+					const newValueTotal = valueTotalDependencies.reduce((sum, k) => sum + (totals[k] || 0), 0);
+					totals.valueTotal = newValueTotal;
+				}
+				
+				//automatically recalc feesTotal if any individual fee changes
+				if (feeKeys.includes(key)) {
+					const total = feeKeys.reduce((sum, feeKey) => sum + (totals[feeKey] || 0), 0);
+					totals.feesTotal = total;
+				}
+				
+				return true;
+			}
+		});
+		totals.listingFeeTotal = 0.20;
+		const shippingLabelInput = document.getElementById('shipping-label');
+		const expensesList = document.getElementById('expenses-list');
+		const laborList = document.getElementById('labor-list');
+		
+		function addItem(list) {
+			const template = list.querySelector(".template");
+			const clone = template.cloneNode(true);
+			clone.classList.remove('template');
+			list.appendChild(clone);
+		}
+		
+		//expenses
+		function updateExpensesTotal() {
+			totals.expensesTotal = Array.from(expensesList.querySelectorAll('input[type="number"]')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+		}
+		expensesList.addEventListener('input', event => {
+			if (event.target.matches('input[type="number"]')) {
+				updateExpensesTotal();
+			}
+		});
+		
+		//labor
+		function updateLaborTotal() {
+			const laborItems = Array.from(laborList.querySelectorAll('li'));
+			const subtotals = laborItems.map(li => {
+				const hours = parseFloat(li.querySelector('.labor-hours')?.value) || 0;
+				const rate = parseFloat(li.querySelector('.labor-rate')?.value) || 0;
+				return hours * rate;
+			});
+		
+			laborItems.forEach((li, index) => {
+				const subtotalDisplay = li.querySelector('.labor-subtotal');
+				if (subtotalDisplay) subtotalDisplay.textContent = subtotals[index].toFixed(2);
+			});
+		
+			totals.laborTotal = subtotals.reduce((sum, subtotal) => sum + subtotal, 0);
+		}
+		laborList.addEventListener('input', event => {
+			if (event.target.matches('input[type="number"]')) {
+				updateLaborTotal();
+			}
+		});
+		
+		//todo: can this removeItem be done better
+		function removeItem(event){
+			const remover = event.target;
+			const parent = remover.parentElement;
+			parent.remove();
+			updateExpensesTotal();
+			updateLaborTotal();
+			calculateListingPrice();
+		}
+		
+		shippingLabelInput.addEventListener('input', () => {
+			const shippingCost = parseFloat(shippingLabelInput.value) || 0;
+			totals.shippingLabelFeeTotal = round2(shippingCost * 0.065);
+		});
+		
+		//income tax calculations
+		let incomeTaxHandler = document.querySelector('input[name="incomeTax"]:checked').value;
+		const incomeTaxRadios = document.querySelectorAll('input[name="incomeTax"]');
+		incomeTaxRadios.forEach(radio => {
+			radio.addEventListener('change', () => {
+				incomeTaxHandler = document.querySelector('input[name="incomeTax"]:checked').value;
+				calculateListingPrice();
+			});
+		});
+		
+		function calculateIncomeTax(){
+			const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
+			const setAside = totals.laborTotal * incomeTaxRate;
+			if(incomeTaxHandler !== 'ignore'){
+				totals.incomeTaxTotal = setAside;
+			} else {
+				totals.incomeTaxTotal = "0.00";
+			}
+		}
+		
+		//fee calculations
+		let offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
+		const adFeeRadios = document.querySelectorAll('input[name="offsiteAdFee"]');
+		adFeeRadios.forEach(radio => {
+			radio.addEventListener('change', () => {
+				offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
+				calculateListingPrice();
+			});
+		});
+		
+		function calculateListingPrice(){
+			calculateIncomeTax();
+			const processingFeeFlat = 0.25;
+			const processingRate = 0.03;
+			const transactionRate = .065;
+			const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
+			let net = totals.valueTotal + (incomeTaxHandler === 'factor' ? totals.incomeTaxTotal : 0);
+			const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
+			const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0;
+			
+			const compoundRate = transactionRate + (processingRate * (1 + salesTaxRate)) + offsiteAdRate;
+			const denominator = 1 - compoundRate;
+			if (denominator > 0) {
+				const listingPriceRaw = (net + (shippingLabel * compoundRate) + totalFlatFees) / denominator;
+				const listingPrice = Math.ceil(listingPriceRaw * 100) / 100;
+				totals.listingPrice = listingPrice;
+				
+				const subtotal = listingPrice + shippingLabel;
+				const transactionFee = round2(listingPrice * transactionRate);
+				const tax = round2(subtotal * salesTaxRate);
+				const processingFee = round2((subtotal + tax) * processingRate) + processingFeeFlat;
+				const offsiteAdFee = round2(subtotal * offsiteAdRate);
+				
+				totals.processingFeeTotal = processingFee;
+				totals.transactionFeeTotal = transactionFee;
+				totals.taxTotal = tax;
+				totals.customerTotal = (subtotal + tax);
+				totals.offsiteAdFeeTotal = offsiteAdFee;
+			}
+		}
+		
+		document.addEventListener('input', event => {
+			if (event.target.matches('input[type="number"]')) {
+				calculateListingPrice();
+			}
+		});
+		
+		
+		
+		
+		
+		
+		
+		
+		//todo: make a simple calculator to show the fees for a given listing price
+		
+		/*function updateProcessingFee(){
+			const valueTotal = parseFloat(valueTotalDisplay.textContent) || 0;
+			const shippingLabelCost = parseFloat(document.getElementById('shipping-label').value) || 0;
+			const taxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0;
+			const subtotal = (valueTotal + shippingLabelCost) * (1 + taxRate);
+			const processingFee = Math.round(subtotal * 0.03 * 100) / 100 + 0.25;
+			processingFeeTotalDisplay.textContent = processingFee.toFixed(2);
+			updateFeesTotal();
+		}
+		document.getElementById('sales-tax').addEventListener('input', event => {
+			updateProcessingFee();
+		});
+		
+		function updateTransactionFee(){
+			const valueTotal = parseFloat(valueTotalDisplay.textContent) || 0;
+			const transactionFee = Math.round(valueTotal * 0.065 * 100) / 100;
+			transactionFeeTotalDisplay.textContent = transactionFee.toFixed(2);
+			updateFeesTotal();
+		}
+		
+		function updateShippingFee(){
+			const shippingLabelCost = parseFloat(document.getElementById('shipping-label').value) || 0;
+			const shippingLabelFee = Math.round(shippingLabelCost * 0.065 * 100) / 100;
+			shippingLabelFeeTotalDisplay.textContent = shippingLabelFee.toFixed(2);
+			updateProcessingFee();
+			updateFeesTotal();
+		}
+		updateShippingFee();
+		document.getElementById('shipping-label').addEventListener('input', event => {
+			updateShippingFee();
+		});
+		
+		
+		function updateFeesTotal(){
+			feesTotalDisplay.textContent = (Math.round((parseFloat(processingFeeTotalDisplay.textContent) + parseFloat(transactionFeeTotalDisplay.textContent) + parseFloat(shippingLabelFeeTotalDisplay.textContent)) * 100) / 100 + 0.2).toFixed(2);
+		}
+		*/
+		
+		
+		
+	</script>
+</body>
+</html>
