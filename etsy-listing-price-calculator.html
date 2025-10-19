@@ -8,7 +8,6 @@
 	without explicit permission from the author.
 -->
 <!--
-	//todo: setup git repo
 	//todo: style the page - make it remind of etsy style, but not so much that it can confuse
 	//todo: reword onpage text
 	//todo: clean up html formatting
@@ -19,7 +18,6 @@
 	//todo: accessibilty improvements
 	//todo: save product setups to localstorage so they can be easily opened up
 	//todo: fill out readme
-	//todo: other github files
 	//todo: once ready host on github pages
 -->	
 <html lang="en">
@@ -33,7 +31,7 @@
 </head>
 <body>
 	
-	<form>
+	<form id="listing-price-calculator">
 		<fieldset id="expenses">
 			<legend>expenses</legend>
 			<p>add the materials you used, as well as different things you'll need for packaging as those costs can add up</p>
@@ -120,6 +118,18 @@
 		<br/>
 		<div>Total paid by customer: $<span id="customer-total" class="amount-display">0.00</span></div>
 		<div>Tax paid by customer: $<span id="tax-total" class="amount-display">0.00</span></div>
+		<br/>
+		<br/>
+		
+		<form id="quick-calculator">
+			<fieldset>
+				<legend>quick calculator</legend>
+				<p>if you want to just enter a listing price and see an estimate of what you would get in return.</p>
+				<label>Listing Price $<input type="number" id="qc-listing-price" step="0.01" placeholder="0.00"></label><br/>
+				<div>Estimated Return: $<span id="qc-return" class="amount-display">0.00</span> <p>This will vary based on taxes, shipping, and fees. For a more robust calculation use the full tool.</p></div>
+			</fieldset>
+		</form>
+		
 	</aside>
 	
 	
@@ -181,6 +191,9 @@
 			}
 		});
 		totals.listingFeeTotal = 0.20;
+		const processingFeeFlat = 0.25;
+		const processingRate = 0.03;
+		const transactionRate = .065;
 		const shippingLabelInput = document.getElementById('shipping-label');
 		const expensesList = document.getElementById('expenses-list');
 		const laborList = document.getElementById('labor-list');
@@ -271,9 +284,7 @@
 		
 		function calculateListingPrice(){
 			calculateIncomeTax();
-			const processingFeeFlat = 0.25;
-			const processingRate = 0.03;
-			const transactionRate = .065;
+			
 			const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
 			let net = totals.valueTotal + (incomeTaxHandler === 'factor' ? totals.incomeTaxTotal : 0);
 			const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
@@ -301,58 +312,26 @@
 		}
 		
 		document.addEventListener('input', event => {
-			if (event.target.matches('input[type="number"]')) {
+			if (!event.target.matches('input[type="number"]')) return;
+			
+			if (event.target.closest('#listing-price-calculator')){
 				calculateListingPrice();
+			} else if(event.target.closest('#quick-calculator')){
+				calculateReturn();
 			}
 		});
 		
-		
-		
-		
-		
-		
-		
-		
-		//todo: make a simple calculator to show the fees for a given listing price
-		
-		/*function updateProcessingFee(){
-			const valueTotal = parseFloat(valueTotalDisplay.textContent) || 0;
-			const shippingLabelCost = parseFloat(document.getElementById('shipping-label').value) || 0;
-			const taxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0;
-			const subtotal = (valueTotal + shippingLabelCost) * (1 + taxRate);
-			const processingFee = Math.round(subtotal * 0.03 * 100) / 100 + 0.25;
-			processingFeeTotalDisplay.textContent = processingFee.toFixed(2);
-			updateFeesTotal();
+		function calculateReturn(){
+			const qcTax = 1.0752;
+			const qcListingPrice = parseFloat(document.getElementById('qc-listing-price').value) || 0;
+			const qcProcessingFee = round2((qcListingPrice * qcTax) * processingRate) + processingFeeFlat;
+			const qcTransactionFee = round2(qcListingPrice * transactionRate);
+			const qcFees = round2(qcProcessingFee + qcTransactionFee + totals.listingFeeTotal);
+			
+			//todo: do i want to include some base shipping?
+			
+			totals.qcReturn = qcListingPrice - qcFees;
 		}
-		document.getElementById('sales-tax').addEventListener('input', event => {
-			updateProcessingFee();
-		});
-		
-		function updateTransactionFee(){
-			const valueTotal = parseFloat(valueTotalDisplay.textContent) || 0;
-			const transactionFee = Math.round(valueTotal * 0.065 * 100) / 100;
-			transactionFeeTotalDisplay.textContent = transactionFee.toFixed(2);
-			updateFeesTotal();
-		}
-		
-		function updateShippingFee(){
-			const shippingLabelCost = parseFloat(document.getElementById('shipping-label').value) || 0;
-			const shippingLabelFee = Math.round(shippingLabelCost * 0.065 * 100) / 100;
-			shippingLabelFeeTotalDisplay.textContent = shippingLabelFee.toFixed(2);
-			updateProcessingFee();
-			updateFeesTotal();
-		}
-		updateShippingFee();
-		document.getElementById('shipping-label').addEventListener('input', event => {
-			updateShippingFee();
-		});
-		
-		
-		function updateFeesTotal(){
-			feesTotalDisplay.textContent = (Math.round((parseFloat(processingFeeTotalDisplay.textContent) + parseFloat(transactionFeeTotalDisplay.textContent) + parseFloat(shippingLabelFeeTotalDisplay.textContent)) * 100) / 100 + 0.2).toFixed(2);
-		}
-		*/
-		
 		
 		
 	</script>
