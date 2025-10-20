@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet
+### Added
+
+- System to save your inputs so that you can easily load them again to verify or make changes
+- Quick calculator to see estimated returns from a given listing price
+
+### Changed
+
+- Templates are now handled differently, making addItem more robust
 
 ## [0.0.1] - 2025-10-19
 

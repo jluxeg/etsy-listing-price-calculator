@@ -16,7 +16,7 @@
 	//todo: proper <head>
 	//todo: break apart style and scripts into own files? it's already going to be decently small, but best practices
 	//todo: accessibilty improvements
-	//todo: save product setups to localstorage so they can be easily opened up
+	//todo: since offsite ad fees fall under marketing and they can be deducted in taxes, could that be factored into the taxes owed? not sure if that's a good idea since it's not a guaruntee for ad fee on every order
 	//todo: fill out readme
 	//todo: once ready host on github pages
 -->	
@@ -25,8 +25,8 @@
 	<meta charset="UTF-8">
 	<title>Listing Price Calculator for Etsy Sellers</title>
 	<style>
-		.template {display:none;}
 		form, aside {display:inline-block;width:49%;vertical-align: top;}
+		/*#storage-list {display: flex; flex-direction: column-reverse;}*/
 	</style>
 </head>
 <body>
@@ -36,11 +36,7 @@
 			<legend>expenses</legend>
 			<p>add the materials you used, as well as different things you'll need for packaging as those costs can add up</p>
 			<ul id="expenses-list">
-				<li class="template">
-					<input type="text" placeholder="expense name">
-					<input type="number" step="0.01" placeholder="0.00">
-					<button type="button" onclick="removeItem(event);">-</button>
-				</li>
+				
 				
 			</ul>
 			<button type="button" onclick="addItem(expensesList);">+add expense</button>
@@ -51,13 +47,7 @@
 			<legend>labor</legend>
 			<p>this will make up your net profit, don't forget to consider things like packaging and admin time. you can also add flat profits you'd like to get for an item.</p>
 			<ul id="labor-list">
-				<li class="template">
-					<input type="text" placeholder="labor name">
-					<label>hours<input type="number" class="labor-hours" step="0.01" placeholder="0.00"></label>
-					<label>rate<input type="number" class="labor-rate" step="0.01" placeholder="0.00"></label>
-					<span>Subtotal: $<span class="labor-subtotal">0.00</span></span>
-					<button type="button" onclick="removeItem(event);">-</button>
-				</li>
+				
 				
 			</ul>
 			<button type="button" onclick="addItem(laborList);">+add labor type</button>
@@ -129,6 +119,20 @@
 				<div>Estimated Return: $<span id="qc-return" class="amount-display">0.00</span> <p>This will vary based on taxes, shipping, and fees. For a more robust calculation use the full tool.</p></div>
 			</fieldset>
 		</form>
+		<br/>
+		<form id="storage">
+			<fieldset>
+				<legend>save inputs</legend>
+				
+				<label>Product Name <input type="text" id="save-product-name"></label>
+				<button type="button" onclick="saveInputs()">Save Product</button>
+				
+				<ul id="storage-list">
+					
+				</ul>
+			</fieldset>
+		</form>
+		<button type="button" onclick="clearInputs()">clear inputs</button>
 		
 	</aside>
 	
@@ -137,7 +141,7 @@
 	<script type="text/javascript">
 		
 		function toCamelCase(str) {
-			return str.toLowerCase().replace(/[-_]+([a-z])/g, (_, letter) => letter.toUpperCase());
+			return str.toLowerCase().replace(/[-_\s]+([a-z])/g, (_, letter) => letter.toUpperCase());
 		}
 		
 		function toKebabCase(str) {
@@ -198,11 +202,46 @@
 		const expensesList = document.getElementById('expenses-list');
 		const laborList = document.getElementById('labor-list');
 		
-		function addItem(list) {
-			const template = list.querySelector(".template");
-			const clone = template.cloneNode(true);
-			clone.classList.remove('template');
-			list.appendChild(clone);
+		const templates = {
+			expensesList: `<li>
+					<input type="text" placeholder="expense name" value="{{name}}">
+					<input type="number" step="0.01" placeholder="0.00" value="{{value}}">
+					<button type="button" onclick="removeItem(event);">-</button>
+				</li>`,
+			laborList: `<li>
+					<input type="text" placeholder="labor name" value="{{name}}">
+					<label>hours<input type="number" class="labor-hours" step="0.01" placeholder="0.00" value="{{hours}}"></label>
+					<label>rate<input type="number" class="labor-rate" step="0.01" placeholder="0.00" value="{{value}}"></label>
+					<span>Subtotal: $<span class="labor-subtotal">0.00</span></span>
+					<button type="button" onclick="removeItem(event);">-</button>
+				</li>`,
+			storageList: `<li data-key="{{key}}">
+						<span>{{name}}</span>
+						<button type="button" onclick="loadSavedInput('{{key}}')">load</button>
+						<button type="button" onclick="appendInput('{{key}}')">append</button>
+						<button type="button" onclick="deleteSavedInput('{{key}}')">delete</button>
+					</li>`
+		};
+		
+		
+		function addItem(list, replacements = {}, placement = 'append') {
+			const templateKey = toCamelCase(list.id);
+			const wrapper = document.createElement('div');
+			let html = templates[templateKey];
+			
+			for(const key in replacements){
+				const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
+				html = html.replace(regex, replacements[key]);
+			}
+			//clean up any other mustaches
+			html = html.replace(/{{\s*[\w]+\s*}}/g, '');
+			
+			wrapper.innerHTML = html;
+			if(placement == 'append'){
+				list.append(wrapper.firstElementChild);
+			} else {
+				list.prepend(wrapper.firstElementChild);
+			}
 		}
 		
 		//expenses
@@ -282,6 +321,7 @@
 			});
 		});
 		
+		//todo: when everything gets zeroed out there are still some non-zero totals being displayed, need to look into that
 		function calculateListingPrice(){
 			calculateIncomeTax();
 			
@@ -331,6 +371,136 @@
 			//todo: do i want to include some base shipping?
 			
 			totals.qcReturn = qcListingPrice - qcFees;
+		}
+		
+		//todo: add validation to saved input steps
+		const elpcPrefix = 'elpc_'; //prefix for localStorage items
+		
+		function saveInputs(){
+			const saveName = document.getElementById('save-product-name').value;
+			const keyName = elpcPrefix+toCamelCase(saveName);
+			const inputs = {
+				name: saveName,
+				expenses: {},
+				labor: {},
+				shipping: shippingLabelInput.value,
+				tax: document.getElementById('sales-tax').value,
+				adRate: document.querySelector('input[name="offsiteAdFee"]:checked').value,
+				taxFactor: incomeTaxHandler,
+				taxRate: document.getElementById('income-tax-rate').value,
+				timeStamp: Date.now()
+			};
+			//each of the expenses - has name & value
+			let counter = 0;
+			expensesList.querySelectorAll('li').forEach(li => {
+				const name = li.querySelector('input[type="text"]').value;
+				const value = li.querySelector('input[type="number"]').value;
+				inputs.expenses[counter] = {name: name, value: value};
+				counter++;
+			});
+			
+			//each of the labors - has name & hours & value
+			counter = 0;
+			laborList.querySelectorAll('li').forEach(li => {
+				const name = li.querySelector('input[type="text"]').value;
+				const hours = li.querySelector('.labor-hours').value;
+				const value = li.querySelector('.labor-rate').value;
+				inputs.labor[counter] = {name: name, hours: hours, value: value};
+				counter++;
+			});
+			
+			
+			localStorage.setItem(keyName, JSON.stringify(inputs));
+			if(document.querySelector('#storage-list [data-key="'+keyName+'"]')){
+				//todo: create a visual indicator this was updated
+				document.getElementById('storage-list').prepend(document.querySelector('#storage-list [data-key="'+keyName+'"]'));
+			} else {
+				addItem(document.getElementById('storage-list'), {name: saveName, key: keyName}, 'prepend');
+			}
+			
+		}
+		
+		function getSavedInputs(){
+			const items = {};
+			for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i);
+				if (key && key.startsWith(elpcPrefix)) {
+					const storageItem = localStorage.getItem(key);
+					const inputs = JSON.parse(storageItem);
+					items[key] = inputs;
+				}
+			}
+			const entries = Object.entries(items);
+			
+			entries.sort(([, a], [, b]) => b.timeStamp - a.timeStamp);
+			
+			entries.forEach(([key, obj]) => {
+				addItem(document.getElementById('storage-list'), {name: obj.name, key: key});
+			});
+			
+		}
+		getSavedInputs();
+		
+		//todo: clear inputs before loading
+		function clearInputs(){
+			expensesList.querySelectorAll('li').forEach(li => li.remove());
+			laborList.querySelectorAll('li').forEach(li => li.remove());
+			shippingLabelInput.value = '';
+			
+			//todo: i feel like anywhere i have this kind of stuff can be handled better
+			document.getElementById('sales-tax').value = 7.52;
+			document.getElementById('income-tax-rate').value = 30;
+			document.querySelector('input[name="offsiteAdFee"][value="0"]').checked = true;
+			offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
+			document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
+			incomeTaxHandler = 'ignore';
+			
+			//todo: bout time to handle this better
+			updateExpensesTotal();
+			updateLaborTotal();
+			calculateListingPrice();
+		}
+		
+		function getSingleInput(key){
+			const storageItem = localStorage.getItem(key);
+			const inputs = JSON.parse(storageItem);
+			
+			document.getElementById('save-product-name').value = inputs.name;
+			shippingLabelInput.value = inputs.shipping;
+			document.getElementById('sales-tax').value = inputs.tax;
+			document.getElementById('income-tax-rate').value = inputs.taxRate;
+			document.querySelector('input[name="offsiteAdFee"][value="'+inputs.adRate+'"]').checked = true;
+			offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
+			document.querySelector('input[name="incomeTax"][value="'+inputs.taxFactor+'"]').checked = true;
+			incomeTaxHandler = inputs.taxFactor;
+			
+			Object.entries(inputs.expenses).forEach(([key, obj]) => {
+				addItem(expensesList, {name: obj.name, value: obj.value});
+			});
+			
+			Object.entries(inputs.labor).forEach(([key, obj]) => {
+				addItem(laborList, {name: obj.name, hours: obj.hours, value: obj.value});
+			});
+			
+			updateExpensesTotal();
+			updateLaborTotal();
+			calculateListingPrice();
+		}
+		
+		function loadSavedInput(key){
+			clearInputs();
+			getSingleInput(key);
+		}
+		
+		//todo: add appendInput function so users can save small things like packaging bundles and quickly apply them to their current workflow
+		//todo: this is almost, the issue is that it changes the other factors, basically i just want to append the expenses and labor
+		function appendInput(key){
+			getSingleInput(key);
+		}
+		
+		function deleteSavedInput(key){
+			localStorage.removeItem(key);
+			document.querySelector('#storage-list [data-key="'+key+'"]').remove();
 		}
 		
 		
