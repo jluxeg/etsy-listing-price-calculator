@@ -8,587 +8,220 @@
 	without explicit permission from the author.
 -->
 <!--
-	style:
-	//todo: style the page - make it remind of etsy style, but not so much that it can confuse
-	
-	data:
 	//todo: reword onpage text
-	//todo: clean up html formatting
-	//todo: proper <head>
-	//todo: accessibilty improvements
-	
-	script:
-	//todo: comment js
-	//todo: final refactor once inline todos are done
-	
-	other:
-	//todo: break apart style and scripts into own files? it's already going to be decently small, but best practices
+	//todo: favicon and social images
 	//todo: fill out readme
 	//todo: once ready host on github pages
 -->	
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="max-age=3600">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="theme-color" content="#ffffff">
+	
 	<title>Listing Price Calculator for Etsy Sellers</title>
-	<style>
-		form, aside {display:inline-block;width:49%;vertical-align: top;}
-		.no-storage #storage {display: none;}
-		#storage-full-warning {display: none;}
-		#storage.storage-full #storage-save-field {pointer-events:none; opacity: .5;}
-		#storage.storage-full #storage-full-warning {display: block;}
-		.saved {background-color: #d0f5d0; transition: background-color 0.5s;}
-	</style>
+	<meta name="description" content="Easily calculate your Etsy listing prices including materials, labor, fees, taxes, and profits. Accessible and responsive tool for sellers.">
+	<meta name="author" content="Justin Ludwig">
+	<!--might need this later <link rel="canonical" href="https://yourdomain.com/etsy-calculator"> -->
+	
+	<meta property="og:title" content="Listing Price Calculator for Etsy Sellers">
+	<meta property="og:description" content="Easily calculate your Etsy listing prices including materials, labor, fees, taxes, and profits.">
+	<meta property="og:type" content="website">
+	<!--<meta property="og:url" content="[todo]">-->
+	<!--<meta property="og:image" content="[todo 1200x630]">-->
+	
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Listing Price Calculator for Etsy Sellers">
+	<meta name="twitter:description" content="Easily calculate your Etsy listing prices including materials, labor, fees, taxes, and profits.">
+	<meta name="twitter:image" content="[todo]">
+	
+	<!--todo
+	<link rel="icon" href="/favicon.ico" type="image/x-icon">
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	-->
+	
+	<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "WebApplication",
+		"name": "Etsy Listing Price Calculator",
+		"url": "https://yourdomain.com/etsy-calculator",
+		"applicationCategory": "FinanceApplication",
+		"operatingSystem": "All",
+		"description": "A tool to calculate Etsy listing prices including materials, labor, fees, taxes, and profits."
+	}
+	</script>
+	
+	<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+	<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+	
+	<link rel="dns-prefetch" href="https://fonts.googleapis.com">
+	<link rel="dns-prefetch" href="https://fonts.gstatic.com">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+	
+	<link rel="stylesheet" href="src/styles.css">
+	
+	<!-- maybe for later <meta name="color-scheme" content="light dark"> -->
 </head>
 <body>
-	
-	<form id="listing-price-calculator">
-		<fieldset id="expenses">
-			<legend>expenses</legend>
-			<p>add the materials you used, as well as different things you'll need for packaging as those costs can add up</p>
-			<ul id="expenses-list">
-				
-				
-			</ul>
-			<button type="button" onclick="addItem(expensesList);">+add expense</button>
-			<div>Total Expenses: $<span id="expenses-total" class="amount-display">0.00</span></div>
-		</fieldset>
+	<header itemscope itemtype="https://schema.org/WebPageElement">
+		<h1>Listing Price Calculator for Etsy Sellers</h1>
+		<p>A tool to help you figure out how to price your individual listings to sell on Etsy.</p>
+	</header>
+	<main aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebPage">
 		
-		<fieldset id="labor">
-			<legend>labor</legend>
-			<p>this will make up your net profit, don't forget to consider things like packaging and admin time. you can also add flat profits you'd like to get for an item.</p>
-			<ul id="labor-list">
-				
-				
-			</ul>
-			<button type="button" onclick="addItem(laborList);">+add labor type</button>
-			<div>Total Labor Cost: $<span id="labor-total" class="amount-display">0.00</span></div>
-		</fieldset>
-		<br/><br/>
-		<div>Product Value: $<span id="value-total" class="amount-display">0.00</span></div>
-		
-		
-	<br/><br/>
-		
-		
-		
-		<fieldset>
-			<legend>Etsy Fee Calculations</legend>
-			<p>The different fees that are applied to an Etsy order are as follows:<br/>
-				$0.20 flat listing fee<br/>
-				3% of order total (including sales tax) + $0.25 processing fee<br/>
-				6.5% of item total (listed price - minus any applied coupons) transaction fee<br/>
-				6.5% of shipping label total transaction fee</p>
-			<label>Shipping Label Cost Estimate<input type="number" id="shipping-label" step="0.01" placeholder="0.00"></label><br/>
-			<label>Sales Tax Estimate<input type="number" id="sales-tax" step="0.01" value="7.52">%</label><span>(while this varies state to state the national average is 7.52%)</span>
-		</fieldset>
-		
-		
-		
-		
-		<fieldset>
-			<legend>etsy offsite ad fees</legend>
-			
-			<label>ad rate<label><input type="radio" name="offsiteAdFee" value="0" checked>0%</label><label><input type="radio" name="offsiteAdFee" value="12">12%</label><label><input type="radio" name="offsiteAdFee" value="15">15%</label></label>
-			
-			<p>ad fees. etsy will automatically advertise your listing on your behalf across social media and other channels. if someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied, and you find out that happened sometime later. the percentage will be applied to the total purchase amount, including shipping, minus taxes.</p>
-			<p>if you made less than $10,000 in a year, your ad fee will be 15%. you can disable the external advertising to avoid this, however this option is also tied into search results and can severely limit your listings appearing in normal search results.</p>
-			<p>if you made more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
-			
-		</fieldset>
-		<fieldset>
-			<legend>income tax</legend>
-			<p>they say if you are going to be self employed you should prepare for around 30% tax on your net profits to cover federal and state, and if you're unlucky, city as well</p>
-			<label>income tax calculation<label><input type="radio" name="incomeTax" value="ignore" checked>ignore</label><label><input type="radio" name="incomeTax" value="view">view</label><label><input type="radio" name="incomeTax" value="factor">factor</label></label>
-			<label>tax rate<input type="number" id="income-tax-rate" step="0.01" value="30.00">%</label>
-		</fieldset>
-		<small>*i am not a tax accountant and this site can not be used as tax advice*</small>
-	</form>
-	<aside>
-		<h3>testing totals:</h3>
-		<div>suggested listing price $<span id="listing-price" class="amount-display">0.00</span></div>
-		
-		<h4>Estimated Totals:</h4>
-		<div>Listing Fee: $<span id="listing-fee-total" class="fee-total">0.20</span></div>
-		<div>Processing Fee: $<span id="processing-fee-total" class="fee-total amount-display">0.00</span></div>
-		<div>Transaction Fee: $<span id="transaction-fee-total" class="fee-total amount-display">0.00</span></div>
-		<div>Shipping Label Fee: $<span id="shipping-label-fee-total" class="fee-total amount-display">0.00</span></div>
-		<div>Offsite Ad Fee: $<span id="offsite-ad-fee-total" class="fee-total amount-display">0.00</span></div>
-		<div>Fees Total: $<span id="fees-total" class="amount-display">0.00</span></div>
-		<br/>
-		<div>Set aside for taxes: $<span id="income-tax-total" class="amount-display">0.00</span></div>
-		<br/>
-		<div>Total paid by customer: $<span id="customer-total" class="amount-display">0.00</span></div>
-		<div>Tax paid by customer: $<span id="tax-total" class="amount-display">0.00</span></div>
-		<br/>
-		<br/>
-		
-		<form id="quick-calculator">
-			<fieldset>
-				<legend>quick calculator</legend>
-				<p>if you want to just enter a listing price and see an estimate of what you would get in return.</p>
-				<label>Listing Price $<input type="number" id="qc-listing-price" step="0.01" placeholder="0.00"></label><br/>
-				<div>Estimated Return: $<span id="qc-return" class="amount-display">0.00</span> <p>This will vary based on taxes, shipping, and fees. For a more robust calculation use the full tool.</p></div>
-			</fieldset>
-		</form>
-		<br/>
-		<form id="storage">
-			<fieldset>
-				<legend>save inputs</legend>
-				<div id="storage-save-field">
-					<label>Product Name <input type="text" id="save-product-name"></label>
-					<button type="button" onclick="saveInputs()">Save Product</button>
+		<form id="listing-price-calculator" tabindex="-1" aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
+			<div style="display: flex; justify-content: space-between; align-items: start;">
+				<h2 id="calculator-heading">Your Product Information</h2>
+				<button type="button" onclick="clearInputs()">Clear All Inputs</button>
+			</div>
+			<fieldset id="expenses">
+				<legend class="h3">Materials & Expenses</legend><div class="clearfix"></div>
+				<p>Add the materials you used, as well as different things you'll need for packaging as those costs can add up.</p>
+				<ul id="expenses-list" class="form-line-items" aria-live="polite" aria-label="Material and expense items list"></ul>
+				<button type="button" onclick="addItem(expensesList);" aria-controls="expenses-list">Add a Material or Expense</button>
+				<div class="total-line">
+					<label for="expenses-total">Total Expenses: $</label>
+					<output id="expenses-total" name="expenses-total" class="amount-display" role="status" aria-live="polite">0.00</output>
 				</div>
-				<div id="storage-full-warning">Storage is full, remove some items to make room.</div>
-				<ul id="storage-list">
-					
+			</fieldset>
+			
+			<fieldset id="labor">
+				<legend class="h3">Labor</legend><div class="clearfix"></div>
+				<p>this will make up your net profit, don't forget to consider things like packaging and admin time. you can also add flat profits you'd like to get for an item.</p>
+				<ul id="labor-list" class="form-line-items" aria-live="polite" aria-label="Labor items list"></ul>
+				<button type="button" onclick="addItem(laborList);" aria-controls="labor-list">Add Labor Type</button>
+				<div class="total-line">
+					<label for="labor-total">Total Labor Cost: $</label>
+					<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+				</div>
+			</fieldset>
+			
+			<section itemscope itemtype="https://schema.org/WebPageElement" aria-label="Product Value">
+				<h3>Product Value $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
+				<p>Your total product value including labor, material, and expenses.</p>
+			</section>
+			
+			<fieldset>
+				<legend class="h3">Etsy Fee Calculations</legend><div class="clearfix"></div>
+				<p>The different fees that are applied to an Etsy order are as follows:</p>
+				<ul class="p">
+					<li>$0.20 flat listing fee</li>
+					<li>3% of order total (including sales tax) + $0.25 processing fee</li>
+					<li>6.5% of item total (listed price - minus any applied coupons) transaction fee</li>
+					<li>6.5% of shipping label total transaction fee</li>
 				</ul>
+				<div>
+					<label>Shipping Label Cost Estimate: <span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00"></label>
+				</div>
+				<br/>
+				<div>
+					<label>Sales Tax Estimate: <input type="number" class="percent" id="sales-tax" name="sales-tax" step="0.01" value="7.52" min="0" aria-describedby="sales-tax-note"><span class="input-unit">%</span></label>
+					<small id="sales-tax-note">(while this varies state to state the national average is 7.52%)</small>
+				</div>
+			</fieldset>
+			
+			<fieldset>
+				<legend class="h3">Etsy Offsite Ad Fee Rate</legend><div class="clearfix"></div>
+				<p>ad fees. etsy will automatically advertise your listing on your behalf across social media and other channels. if someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied, and you find out that happened sometime later. the percentage will be applied to the total purchase amount, including shipping, minus taxes.</p>
+				<p>if you made less than $10,000 in a year, your ad fee will be 15%. you can disable the external advertising to avoid this, however this option is also tied into search results and can severely limit your listings appearing in normal search results.</p>
+				<p>if you made more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
+				<fieldset>
+					<legend class="sr-only">Ad Rate</legend>
+					<label><input type="radio" name="offsiteAdFee" value="0" checked>0%</label>
+					<label><input type="radio" name="offsiteAdFee" value="12">12%</label>
+					<label><input type="radio" name="offsiteAdFee" value="15">15%</label>
+				</fieldset>
+			</fieldset>
+			
+			<fieldset>
+				<legend class="h3">Income Tax</legend><div class="clearfix"></div>
+				<p>they say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits to cover federal and state, and if you're unlucky, city as well</p>
+				<fieldset>
+					<legend class="sr-only">Income Tax Calculation</legend>
+					<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
+					<label><input type="radio" name="incomeTax" value="view">View</label>
+					<label><input type="radio" name="incomeTax" value="factor">Factor</label>
+				</fieldset>
+				<label>Tax Rate: <input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00"><span class="input-unit">%</span></label>
 			</fieldset>
 		</form>
-		<button type="button" onclick="clearInputs()">clear inputs</button>
 		
-	</aside>
+		<aside aria-labelledby="totals-heading" itemscope itemtype="https://schema.org/WebPageElement">
+			<section>
+				<h2 id="totals-heading">Suggested Listing Price: $<output id="listing-price" class="amount-display" role="status" aria-live="polite">0.00</output></h2>
+				
+				<h3>Estimated Totals:</h3>
+				<ul id="estimated-totals">
+					<li>Listing Fee: $<output id="listing-fee-total" class="fee-total" role="status" aria-live="polite">0.20</output></li>
+					<li>Processing Fee: $<output id="processing-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
+					<li>Transaction Fee: $<output id="transaction-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
+					<li>Shipping Label Fee: $<output id="shipping-label-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
+					<li>Offsite Ad Fee: $<output id="offsite-ad-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
+				</ul>
+				<div class="total-line">
+					<label for="fees-total">Fees Total: $</label>
+					<output id="fees-total" name="fees-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+				</div>
+				<div id="set-aside-taxes" class="hidden">
+					<label for="income-tax-total">Set aside for taxes: $</label>
+					<output id="income-tax-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+				</div>
+				<div class="total-line">
+					<div>
+						<label for="customer-total">Total paid by customer: $</label>
+						<output id="customer-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					</div>
+					<div>
+						<label for="tax-total">Tax paid by customer: $</label>
+						<output id="tax-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					</div>
+				</div>
+			</section>
+			
+			<form id="quick-calculator" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
+				<fieldset>
+					<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
+					<p>if you want to just enter a listing price and see an estimate of what you would get in return.</p>
+					<div>
+						<label>Listing Price: <span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></label>
+					</div>
+					<div class="total-line">
+						<label for="qc-return">Estimated Return: $</label>
+						<output id="qc-return" class="amount-display" role="status" aria-live="polite">0.00</output>
+						<p>This will vary based on taxes, shipping, and fees. For a more robust calculation use the full tool.</p>
+					</div>
+				</fieldset>
+			</form>
+			
+			<form id="storage" aria-labelledby="save-inputs-heading" itemscope itemtype="https://schema.org/WebApplication">
+				<fieldset>
+					<legend id="save-inputs-heading" class="h2">Saved Inputs</legend><div class="clearfix"></div>
+					<div id="storage-save-field">
+						<label for="save-product-name" class="sr-only">Setup Name</label>
+						<input type="text" id="save-product-name" name="save-product-name" placeholder="Product Setup Name">
+						<button type="button" onclick="saveInputs()"aria-controls="storage-list">Save Setup</button>
+					</div>
+					<div id="storage-full-warning" role="alert">Storage is full, remove some items to make room.</div>
+					<ul id="storage-list" aria-label="Saved inputs list"></ul>
+				</fieldset>
+			</form>
+		</aside>
+	</main>
 	
+	<footer itemscope itemtype="https://schema.org/CreativeWork">
+		<small>*I am not a tax professional, and this site can not be used as tax advice.*</small>
+		<p>© 2025 Justin Ludwig <a href="https://github.com/jluxeg/etsy-listing-price-calculator" target="_blank">Github Repo</a></p>
+	</footer>
 	
-	
-	<script type="text/javascript">
-		
-		function toCamelCase(str) {
-			return str.toLowerCase().replace(/[-_\s]+([a-z])/g, (_, letter) => letter.toUpperCase());
-		}
-		
-		function toKebabCase(str) {
-			return str.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
-		}
-		
-		//just want true numbers in the inputs
-		document.addEventListener('keydown', event => {
-			if(event.target.matches('input[type="number"]') && (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-')){
-				event.preventDefault();
-			}
-		});
-		
-		//force 2 decimal places in number inputs
-		document.addEventListener('blur', event => {
-			if (!event.target.matches('input[type="number"]')) return;
-		
-			const raw = event.target.value.trim();
-		
-			// 0nly format if input is not empty
-			if (raw === '') return;
-		
-			const value = parseFloat(raw);
-			if (!isNaN(value)) {
-				event.target.value = value.toFixed(2);
-			}
-		}, true);
-				
-		const round2 = n => Math.round(n * 100) / 100;
-		
-		const valueTotalDependencies = ['expensesTotal', 'laborTotal'];
-		const feeKeys = Array.from(document.querySelectorAll('.fee-total')).map(el => toCamelCase(el.id));
-		const totals = new Proxy({}, {
-			get(_, key) {
-				const id = toKebabCase(key);
-				const el = document.getElementById(id);
-				if (el) return parseFloat(el.textContent) || 0;
-				return 0;
-			},
-			set(_, key, value) {
-				const id = toKebabCase(key);
-				const el = document.getElementById(id);
-				if (el) el.textContent = Number(value).toFixed(2);
-		
-				//automatically recalc valueTotal if needed
-				if (valueTotalDependencies.includes(key)) {
-					const newValueTotal = valueTotalDependencies.reduce((sum, k) => sum + (totals[k] || 0), 0);
-					totals.valueTotal = newValueTotal;
-				}
-				
-				//automatically recalc feesTotal if any individual fee changes
-				if (feeKeys.includes(key)) {
-					const total = feeKeys.reduce((sum, feeKey) => sum + (totals[feeKey] || 0), 0);
-					totals.feesTotal = total;
-				}
-				
-				return true;
-			}
-		});
-		totals.listingFeeTotal = 0.20;
-		const processingFeeFlat = 0.25;
-		const processingRate = 0.03;
-		const transactionRate = .065;
-		const shippingLabelInput = document.getElementById('shipping-label');
-		const expensesList = document.getElementById('expenses-list');
-		const laborList = document.getElementById('labor-list');
-		
-		const templates = {
-			expensesList: `<li>
-					<input type="text" placeholder="expense name" value="{{name}}">
-					<input type="number" step="0.01" placeholder="0.00" value="{{value}}">
-					<button type="button" onclick="removeItem();">-</button>
-				</li>`,
-			laborList: `<li>
-					<input type="text" placeholder="labor name" value="{{name}}">
-					<label>hours<input type="number" class="labor-hours" step="0.01" placeholder="0.00" value="{{hours}}"></label>
-					<label>rate<input type="number" class="labor-rate" step="0.01" placeholder="0.00" value="{{value}}"></label>
-					<span>Subtotal: $<span class="labor-subtotal">0.00</span></span>
-					<button type="button" onclick="removeItem();">-</button>
-				</li>`,
-			storageList: `<li data-key="{{key}}">
-						<span>{{name}}</span>
-						<button type="button" onclick="loadSavedInput('{{key}}')">load</button>
-						<button type="button" onclick="appendInput('{{key}}')">append</button>
-						<button type="button" onclick="deleteSavedInput('{{key}}')">delete</button>
-					</li>`
-		};
-		
-		
-		function addItem(list, replacements = {}, placement = 'append') {
-			const templateKey = toCamelCase(list.id);
-			const wrapper = document.createElement('div');
-			let html = templates[templateKey];
-			
-			for(const key in replacements){
-				const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
-				html = html.replace(regex, replacements[key]);
-			}
-			//clean up any other mustaches
-			html = html.replace(/{{\s*[\w]+\s*}}/g, '');
-			
-			wrapper.innerHTML = html;
-			const newItem = wrapper.firstElementChild;
-			if(placement == 'append'){
-				list.append(newItem);
-			} else {
-				list.prepend(newItem);
-			}
-			return newItem;
-		}
-		
-		//expenses
-		function updateExpensesTotal() {
-			totals.expensesTotal = Array.from(expensesList.querySelectorAll('input[type="number"]')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
-		}
-		expensesList.addEventListener('input', event => {
-			if (event.target.matches('input[type="number"]')) {
-				updateExpensesTotal();
-			}
-		});
-		
-		//labor
-		function updateLaborTotal() {
-			const laborItems = Array.from(laborList.querySelectorAll('li'));
-			const subtotals = laborItems.map(li => {
-				const hours = parseFloat(li.querySelector('.labor-hours')?.value) || 0;
-				const rate = parseFloat(li.querySelector('.labor-rate')?.value) || 0;
-				return hours * rate;
-			});
-		
-			laborItems.forEach((li, index) => {
-				const subtotalDisplay = li.querySelector('.labor-subtotal');
-				if (subtotalDisplay) subtotalDisplay.textContent = subtotals[index].toFixed(2);
-			});
-		
-			totals.laborTotal = subtotals.reduce((sum, subtotal) => sum + subtotal, 0);
-		}
-		laborList.addEventListener('input', event => {
-			if (event.target.matches('input[type="number"]')) {
-				updateLaborTotal();
-			}
-		});
-		
-		function removeItem(){
-			const button = event.currentTarget || event.target;
-			const listItem = button.closest('li');
-			if (!listItem) return;
-			listItem.remove();
-			updateTotals();
-		}
-		
-		shippingLabelInput.addEventListener('input', () => {
-			const shippingCost = parseFloat(shippingLabelInput.value) || 0;
-			totals.shippingLabelFeeTotal = round2(shippingCost * 0.065);
-		});
-		
-		//income tax calculations
-		let incomeTaxHandler = document.querySelector('input[name="incomeTax"]:checked').value;
-		const incomeTaxRadios = document.querySelectorAll('input[name="incomeTax"]');
-		incomeTaxRadios.forEach(radio => {
-			radio.addEventListener('change', () => {
-				incomeTaxHandler = document.querySelector('input[name="incomeTax"]:checked').value;
-				calculateListingPrice();
-			});
-		});
-		
-		function calculateIncomeTax(){
-			const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
-			const setAside = totals.laborTotal * incomeTaxRate;
-			if(incomeTaxHandler !== 'ignore'){
-				totals.incomeTaxTotal = setAside;
-			} else {
-				totals.incomeTaxTotal = 0;
-			}
-		}
-		
-		//fee calculations
-		let offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-		const adFeeRadios = document.querySelectorAll('input[name="offsiteAdFee"]');
-		adFeeRadios.forEach(radio => {
-			radio.addEventListener('change', () => {
-				offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-				calculateListingPrice();
-			});
-		});
-		
-		function calculateListingPrice(){
-			calculateIncomeTax();
-			if(totals.valueTotal <= 0){
-				totals.listingPrice = 0;
-				totals.processingFeeTotal = 0;
-				totals.transactionFeeTotal = 0;
-				totals.taxTotal = 0;
-				totals.customerTotal = 0;
-				totals.offsiteAdFeeTotal = 0;
-			} else{
-				const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
-				let net = totals.valueTotal + (incomeTaxHandler === 'factor' ? totals.incomeTaxTotal : 0);
-				const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
-				const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0;
-				
-				const compoundRate = transactionRate + (processingRate * (1 + salesTaxRate)) + offsiteAdRate;
-				const denominator = 1 - compoundRate;
-				if (denominator > 0) {
-					const listingPriceRaw = (net + (shippingLabel * compoundRate) + totalFlatFees) / denominator;
-					const listingPrice = Math.ceil(listingPriceRaw * 100) / 100;
-					totals.listingPrice = listingPrice;
-					
-					const subtotal = listingPrice + shippingLabel;
-					const transactionFee = round2(listingPrice * transactionRate);
-					const tax = round2(subtotal * salesTaxRate);
-					const processingFee = round2((subtotal + tax) * processingRate) + processingFeeFlat;
-					const offsiteAdFee = round2(subtotal * offsiteAdRate);
-					
-					totals.processingFeeTotal = processingFee;
-					totals.transactionFeeTotal = transactionFee;
-					totals.taxTotal = tax;
-					totals.customerTotal = (subtotal + tax);
-					totals.offsiteAdFeeTotal = offsiteAdFee;
-				}
-			}
-		}
-		
-		function updateTotals(){
-			updateExpensesTotal();
-			updateLaborTotal();
-			calculateListingPrice();
-		}
-		
-		document.addEventListener('input', event => {
-			if (!event.target.matches('input[type="number"]')) return;
-			
-			if (event.target.closest('#listing-price-calculator')){
-				calculateListingPrice();
-			} else if(event.target.closest('#quick-calculator')){
-				calculateReturn();
-			}
-		});
-		
-		function calculateReturn(){
-			const qcTax = 1.0752;
-			const qcListingPrice = parseFloat(document.getElementById('qc-listing-price').value) || 0;
-			const qcProcessingFee = round2((qcListingPrice * qcTax) * processingRate) + processingFeeFlat;
-			const qcTransactionFee = round2(qcListingPrice * transactionRate);
-			const qcFees = round2(qcProcessingFee + qcTransactionFee + totals.listingFeeTotal);
-			
-			totals.qcReturn = qcListingPrice - qcFees;
-		}
-		
-		
-		//localStorage handlers
-		const elpcPrefix = 'elpc_'; //prefix for localStorage items
-		
-		function isQuotaExceededError(error){
-			return (
-				error instanceof DOMException &&
-				// everything except firefox
-				(error.code === 22 || error.name === "QuotaExceededError" ||
-				// firefox
-				error.code === 1014 || error.name === "NS_ERROR_DOM_QUOTA_REACHED")
-			);
-		}
-		
-		function displayStorageError(){
-			document.getElementById('storage').classList.add("storage-full");
-		}
-		
-		function isStorageSupported(){
-			try {
-				if(!localStorage){
-					return false;
-				}
-				const x = '__storage_test__';
-				localStorage.setItem(x, x);
-				localStorage.removeItem(x);
-				return true;
-			} catch (error){
-				const quotaFull = isQuotaExceededError(error) && localStorage.length > 0;
-				if(quotaFull){
-					displayStorageError();
-				}
-				return quotaFull;
-			}
-		}
-		
-		function sanitizeInput(value){
-			return value.trim().replace(/[<>]/g, '').replace(/\s+/g, ' ');
-		}
-		
-		if(!isStorageSupported()){
-			document.body.classList.add("no-storage");
-		} else {
-			function saveInputs(){
-				const saveName = sanitizeInput(document.getElementById('save-product-name').value);
-				const keyName = elpcPrefix+toCamelCase(saveName);
-				const inputs = {
-					name: saveName,
-					expenses: {},
-					labor: {},
-					shipping: shippingLabelInput.value,
-					tax: document.getElementById('sales-tax').value,
-					adRate: document.querySelector('input[name="offsiteAdFee"]:checked').value,
-					taxFactor: incomeTaxHandler,
-					taxRate: document.getElementById('income-tax-rate').value,
-					timeStamp: Date.now()
-				};
-				//each of the expenses - has name & value
-				let counter = 0;
-				expensesList.querySelectorAll('li').forEach(li => {
-					const name = sanitizeInput(li.querySelector('input[type="text"]').value);
-					const value = li.querySelector('input[type="number"]').value;
-					inputs.expenses[counter] = {name: name, value: value};
-					counter++;
-				});
-				
-				//each of the labors - has name & hours & value
-				counter = 0;
-				laborList.querySelectorAll('li').forEach(li => {
-					const name = sanitizeInput(li.querySelector('input[type="text"]').value);
-					const hours = li.querySelector('.labor-hours').value;
-					const value = li.querySelector('.labor-rate').value;
-					inputs.labor[counter] = {name: name, hours: hours, value: value};
-					counter++;
-				});
-				
-				try {
-					localStorage.setItem(keyName, JSON.stringify(inputs));
-				} catch (error){
-					displayStorageError();
-					return false;
-				}
-				
-				let listItem = document.querySelector('#storage-list [data-key="'+keyName+'"]');
-				
-				if(listItem){
-					const parent = document.getElementById('storage-list');
-					parent.prepend(listItem);
-				} else {
-					listItem = addItem(document.getElementById('storage-list'), {name: saveName, key: keyName}, 'prepend');
-				}
-				
-				listItem.classList.add("saved");
-				setTimeout(function(){
-					listItem.classList.remove("saved");
-				}, 1000);
-				
-			}
-			
-			function getSavedInputs(){
-				const items = {};
-				for (let i = 0; i < localStorage.length; i++) {
-					const key = localStorage.key(i);
-					if (key && key.startsWith(elpcPrefix)) {
-						const storageItem = localStorage.getItem(key);
-						const inputs = JSON.parse(storageItem);
-						items[key] = inputs;
-					}
-				}
-				const entries = Object.entries(items);
-				
-				entries.sort(([, a], [, b]) => b.timeStamp - a.timeStamp);
-				
-				entries.forEach(([key, obj]) => {
-					addItem(document.getElementById('storage-list'), {name: obj.name, key: key});
-				});
-				
-			}
-			getSavedInputs();
-			
-			
-			function clearInputs(){
-				expensesList.querySelectorAll('li').forEach(li => li.remove());
-				laborList.querySelectorAll('li').forEach(li => li.remove());
-				shippingLabelInput.value = '';
-				
-				//todo: (refactor) i feel like anywhere i have this kind of stuff can be handled better
-				document.getElementById('sales-tax').value = 7.52;
-				document.getElementById('income-tax-rate').value = (30).toFixed(2);
-				document.querySelector('input[name="offsiteAdFee"][value="0"]').checked = true;
-				offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-				document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
-				incomeTaxHandler = 'ignore';
-				
-				updateTotals();
-			}
-			
-			function getSingleInput(key){
-				const storageItem = localStorage.getItem(key);
-				const inputs = JSON.parse(storageItem);
-				
-				return inputs;
-			}
-			
-			function getManufacturingCost(inputs){
-				Object.entries(inputs.expenses).forEach(([key, obj]) => {
-					addItem(expensesList, {name: obj.name, value: obj.value});
-				});
-				
-				Object.entries(inputs.labor).forEach(([key, obj]) => {
-					addItem(laborList, {name: obj.name, hours: obj.hours, value: obj.value});
-				});
-			}
-			
-			function getIndirectCost(inputs){
-				document.getElementById('save-product-name').value = inputs.name;
-				shippingLabelInput.value = inputs.shipping;
-				document.getElementById('sales-tax').value = inputs.tax;
-				document.getElementById('income-tax-rate').value = inputs.taxRate;
-				document.querySelector('input[name="offsiteAdFee"][value="'+inputs.adRate+'"]').checked = true;
-				offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-				document.querySelector('input[name="incomeTax"][value="'+inputs.taxFactor+'"]').checked = true;
-				incomeTaxHandler = inputs.taxFactor;
-			}
-			
-			function loadSavedInput(key){
-				clearInputs();
-				const inputs = getSingleInput(key);
-				getIndirectCost(inputs);
-				getManufacturingCost(inputs);
-				updateTotals();
-			}
-			
-			function appendInput(key){
-				const inputs = getSingleInput(key);
-				getManufacturingCost(inputs);
-				updateTotals();
-			}
-			
-			function deleteSavedInput(key){
-				localStorage.removeItem(key);
-				document.querySelector('#storage-list [data-key="'+key+'"]').remove();
-			}
-		}
-		
-		
-	</script>
+	<script type="text/javascript" src="src/scripts.js"></script>
 </body>
 </html>
