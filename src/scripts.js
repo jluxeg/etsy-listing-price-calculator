@@ -86,11 +86,9 @@ const templates = {
 				<span class="sr-only">Material or Expense Name</span>
 				<input type="text" placeholder="Material or Expense" value="{{name}}">
 			</label>
-			<label>
-				<span class="sr-only">Material or Expense Cost</span>
-				<span class="input-unit">$</span>
-				<input type="number" step="0.01" min="0" placeholder="0.00" value="{{value}}">
-			</label>
+			<label>Qty: <input type="number" class="expense-qty" step="0.01" min="0" placeholder="0.00" value="{{qty}}"></label>
+			<label>Cost: <span class="input-unit">$</span><input type="number" class="expense-cost" step="0.01" min="0" placeholder="0.00" value="{{cost}}"></label>
+			<span>Subtotal: $<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
 			<button type="button" class="line-item-remover" onclick="removeItem();" aria-label="Remove this line item">×</button>
 		</li>`,
 	laborList: `<li>
@@ -99,8 +97,8 @@ const templates = {
 				<input type="text" placeholder="Labor Type" value="{{name}}">
 			</label>
 			<label>Hours: <input type="number" class="labor-hours" step="0.01" min="0" placeholder="0.00" value="{{hours}}"></label>
-			<label>Rate: <span class="input-unit">$</span><input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{value}}"></label>
-			<span>Subtotal: $<output class="labor-subtotal" role="status" aria-live="polite">0.00</output></span>
+			<label>Rate: <span class="input-unit">$</span><input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{rate}}"></label>
+			<span>Subtotal: $<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
 			<button type="button" class="line-item-remover" onclick="removeItem();" aria-label="Remove this labor entry">×</button>
 		</li>`,
 	storageList: `<li data-key="{{key}}">
@@ -156,37 +154,33 @@ function addItem(list, replacements = {}, placement = 'append') {
 	return newItem;
 }
 
-//expenses
-function updateExpensesTotal() {
-	totals.expensesTotal = Array.from(expensesList.querySelectorAll('input[type="number"]')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
-}
-expensesList.addEventListener('input', event => {
-	if (event.target.matches('input[type="number"]')) {
-		updateExpensesTotal();
-	}
-});
-
-//labor
-function updateLaborTotal() {
-	const laborItems = Array.from(laborList.querySelectorAll('li'));
-	const subtotals = laborItems.map(li => {
-		const hours = parseFloat(li.querySelector('.labor-hours')?.value) || 0;
-		const rate = parseFloat(li.querySelector('.labor-rate')?.value) || 0;
-		return hours * rate;
+//handle math for the line item lists (expense & labor)
+function updateLineItemListTotal(list, totalKey) {
+	const items = Array.from(list.querySelectorAll('li'));
+	const subtotals = items.map(li => {
+		const inputs = Array.from(li.querySelectorAll('input[type="number"]'));
+		const product = inputs.reduce((acc, input) => acc * (parseFloat(input.value) || 0), inputs.length ? 1 : 0);
+		const subtotalDisplay = li.querySelector('.subtotal');
+		if (subtotalDisplay) subtotalDisplay.textContent = product.toFixed(2);
+		return product;
 	});
 
-	laborItems.forEach((li, index) => {
-		const subtotalDisplay = li.querySelector('.labor-subtotal');
-		if (subtotalDisplay) subtotalDisplay.textContent = subtotals[index].toFixed(2);
-	});
-
-	totals.laborTotal = subtotals.reduce((sum, subtotal) => sum + subtotal, 0);
+	totals[totalKey] = subtotals.reduce((sum, n) => sum + n, 0);
 }
-laborList.addEventListener('input', event => {
-	if (event.target.matches('input[type="number"]')) {
-		updateLaborTotal();
-	}
-});
+function bindLineItemListTotal(list, totalKey) {
+	list.addEventListener('input', event => {
+		if (event.target.matches('input[type="number"]')) {
+			updateLineItemListTotal(list, totalKey);
+		}
+	});
+}
+bindLineItemListTotal(expensesList, 'expensesTotal');
+bindLineItemListTotal(laborList, 'laborTotal');
+
+function updateAllLineItemLists(){
+	updateLineItemListTotal(expensesList, 'expensesTotal');
+	updateLineItemListTotal(laborList, 'laborTotal');
+}
 
 function removeItem(){
 	const button = event.currentTarget || event.target;
@@ -278,8 +272,7 @@ function calculateListingPrice(){
 }
 
 function updateTotals(){
-	updateExpensesTotal();
-	updateLaborTotal();
+	updateAllLineItemLists();
 	calculateListingPrice();
 }
 
@@ -360,22 +353,23 @@ if(!isStorageSupported()){
 			taxRate: document.getElementById('income-tax-rate').value,
 			timeStamp: Date.now()
 		};
-		//each of the expenses - has name & value
+		//each of the expenses - has name & qty & cost
 		let counter = 0;
 		expensesList.querySelectorAll('li').forEach(li => {
 			const name = sanitizeInput(li.querySelector('input[type="text"]').value);
-			const value = li.querySelector('input[type="number"]').value;
-			inputs.expenses[counter] = {name: name, value: value};
+			const qty = li.querySelector('.expense-qty').value;
+			const cost = li.querySelector('.expense-cost').value;
+			inputs.expenses[counter] = {name: name, qty: qty, cost: cost};
 			counter++;
 		});
 		
-		//each of the labors - has name & hours & value
+		//each of the labors - has name & hours & rate
 		counter = 0;
 		laborList.querySelectorAll('li').forEach(li => {
 			const name = sanitizeInput(li.querySelector('input[type="text"]').value);
 			const hours = li.querySelector('.labor-hours').value;
-			const value = li.querySelector('.labor-rate').value;
-			inputs.labor[counter] = {name: name, hours: hours, value: value};
+			const rate = li.querySelector('.labor-rate').value;
+			inputs.labor[counter] = {name: name, hours: hours, rate: rate};
 			counter++;
 		});
 		
@@ -449,11 +443,11 @@ if(!isStorageSupported()){
 	
 	function getManufacturingCost(inputs){
 		Object.entries(inputs.expenses).forEach(([key, obj]) => {
-			addItem(expensesList, {name: obj.name, value: obj.value});
+			addItem(expensesList, {name: obj.name, qty: obj.qty, cost: obj.cost});
 		});
 		
 		Object.entries(inputs.labor).forEach(([key, obj]) => {
-			addItem(laborList, {name: obj.name, hours: obj.hours, value: obj.value});
+			addItem(laborList, {name: obj.name, hours: obj.hours, rate: obj.rate});
 		});
 	}
 	

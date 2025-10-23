@@ -117,6 +117,7 @@ input[type="text"] {
 }
 input[type="number"] {
 	width: 120px;
+	text-align: right;
 }
 input[type="number"].percent {
 	width: 92px;
