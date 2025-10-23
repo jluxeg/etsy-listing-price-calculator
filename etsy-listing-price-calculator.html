@@ -16,6 +16,9 @@
 	//todo: could be helpful to have tip on standard decimals for 5-min time increments 
 	//todo: could be helpful to show total hours on labor
 	//todo: would an ignore feature for line items be useful? if you want to notate it but for some reason not have it included?
+	
+	//todo: if editing a save file display the title in the h2
+	//todo: i think i want the individual fee totals to be listed next to their inputs, like income tax or offsite ads
 -->	
 <html lang="en">
 <head>
@@ -85,13 +88,13 @@
 		<form id="listing-price-calculator" tabindex="-1" aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
 			<div style="display: flex; justify-content: space-between; align-items: start;">
 				<h2 id="calculator-heading">Your Product Information</h2>
-				<button type="button" onclick="clearInputs()">Clear All Inputs</button>
+				<button type="button" id="clear-form-btn">Clear All Inputs</button>
 			</div>
 			<fieldset id="expenses">
 				<legend class="h3">Materials & Expenses</legend><div class="clearfix"></div>
 				<p>Add the materials you used, as well as different things you'll need for packaging as those costs can add up.</p>
 				<ul id="expenses-list" class="form-line-items" aria-live="polite" aria-label="Material and expense items list"></ul>
-				<button type="button" onclick="addItem(expensesList);" aria-controls="expenses-list">Add a Material or Expense</button>
+				<button type="button" id="add-expense-btn" aria-controls="expenses-list">Add a Material or Expense</button>
 				<div class="total-line">
 					<label for="expenses-total">Total Expenses: $</label>
 					<output id="expenses-total" name="expenses-total" class="amount-display" role="status" aria-live="polite">0.00</output>
@@ -102,7 +105,7 @@
 				<legend class="h3">Labor</legend><div class="clearfix"></div>
 				<p>this will make up your net profit, don't forget to consider things like packaging and admin time. you can also add flat profits you'd like to get for an item.</p>
 				<ul id="labor-list" class="form-line-items" aria-live="polite" aria-label="Labor items list"></ul>
-				<button type="button" onclick="addItem(laborList);" aria-controls="labor-list">Add Labor Type</button>
+				<button type="button" id="add-labor-btn" aria-controls="labor-list">Add Labor Type</button>
 				<div class="total-line">
 					<label for="labor-total">Total Labor Cost: $</label>
 					<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output>
@@ -110,7 +113,7 @@
 			</fieldset>
 			
 			<section itemscope itemtype="https://schema.org/WebPageElement" aria-label="Product Value">
-				<h3>Product Value $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
+				<h3>Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
 				<p>Your total product value including labor, material, and expenses.</p>
 			</section>
 			
@@ -149,6 +152,7 @@
 			<fieldset>
 				<legend class="h3">Income Tax</legend><div class="clearfix"></div>
 				<p>they say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits to cover federal and state, and if you're unlucky, city as well</p>
+				//todo: double check that the factor rate is still correct, because if you are charging extra to help cover tax, then the amount that is taxable is technically more, so view and factor should be different
 				<fieldset>
 					<legend class="sr-only">Income Tax Calculation</legend>
 					<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
@@ -206,16 +210,15 @@
 				</fieldset>
 			</form>
 			
-			<form id="storage" aria-labelledby="save-inputs-heading" itemscope itemtype="https://schema.org/WebApplication">
+			<form id="storage" aria-labelledby="saved-setups-heading" itemscope itemtype="https://schema.org/WebApplication">
 				<fieldset>
-					<legend id="save-inputs-heading" class="h2">Saved Inputs</legend><div class="clearfix"></div>
+					<legend id="saved-setups-heading" class="h2">Saved Product Setups</legend><div class="clearfix"></div>
 					<div id="storage-save-field">
 						<label for="save-product-name" class="sr-only">Setup Name</label>
 						<input type="text" id="save-product-name" name="save-product-name" placeholder="Product Setup Name">
-						<button type="button" onclick="saveInputs()"aria-controls="storage-list">Save Setup</button>
+						<button type="button" id="save-setup-btn" aria-controls="storage-list">Save Setup</button>
 					</div>
-					<div id="storage-full-warning" role="alert">Storage is full, remove some items to make room.</div>
-					<ul id="storage-list" aria-label="Saved inputs list"></ul>
+					<ul id="storage-list" aria-label="Saved product setups list"></ul>
 				</fieldset>
 			</form>
 		</aside>
@@ -223,6 +226,8 @@
 	
 	<footer itemscope itemtype="https://schema.org/CreativeWork">
 		<small>*I am not a tax professional, and this site can not be used as tax advice.*</small>
+		<br/>
+		<small>*This site is not sponsored or endorsed by Etsy in any way.*</small>
 		<p>© 2025 Justin Ludwig <a href="https://github.com/jluxeg/etsy-listing-price-calculator" target="_blank">Github Repo</a></p>
 	</footer>
 	

@@ -128,15 +128,9 @@ input[type="radio"] {
 .no-storage #storage {
 	display: none;
 }
-#storage-full-warning {
-	display: none;
-}
 #storage.storage-full #storage-save-field {
 	pointer-events:none;
 	opacity: .5;
-}
-#storage.storage-full #storage-full-warning {
-	display: block;
 }
 .saved {
 	background-color: #f1641e4d;
@@ -164,6 +158,10 @@ input[type="radio"] {
 }
 .hidden {
 	display: none;
+}
+.warning {
+	color: red;
+	width: 100%;
 }
 .total-line {
 	border-top: 1px solid #949494;

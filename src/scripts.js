@@ -7,75 +7,42 @@
 	without explicit permission from the author.
 */
 
-//todo: comment js
-//todo: final refactor once inline todos are done
+//todo: responsive js once layout is in place
+
+//todo: could be handy to have a notice before deleting a save incase a misclick
 
 
-function toCamelCase(str) {
-	return str.toLowerCase().replace(/[-_\s]+([a-z])/g, (_, letter) => letter.toUpperCase());
-}
+// ===============================
+// utility functions
+// ===============================
 
-function toKebabCase(str) {
-	return str.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
-}
+const toCamelCase = str => str.toLowerCase().replace(/[-_\s]+([a-z])/g, (_, letter) => letter.toUpperCase());
 
-//just want true numbers in the inputs
-document.addEventListener('keydown', event => {
-	if(event.target.matches('input[type="number"]') && (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-')){
-		event.preventDefault();
-	}
-});
+const toKebabCase = str => str.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
 
-//force 2 decimal places in number inputs
-document.addEventListener('blur', event => {
-	if (!event.target.matches('input[type="number"]')) return;
+const sanitizeInput = value => value.trim().replace(/[<>]/g, '').replace(/\s+/g, ' ');
 
-	const raw = event.target.value.trim();
-
-	// 0nly format if input is not empty
-	if (raw === '') return;
-
-	const value = parseFloat(raw);
-	if (!isNaN(value)) {
-		event.target.value = value.toFixed(2);
-	}
-}, true);
-		
+//used to make sure equations end with 2 decimals
 const round2 = n => Math.round(n * 100) / 100;
 
-const valueTotalDependencies = ['expensesTotal', 'laborTotal'];
-const feeKeys = Array.from(document.querySelectorAll('.fee-total')).map(el => toCamelCase(el.id));
-const totals = new Proxy({}, {
-	get(_, key) {
-		const id = toKebabCase(key);
-		const el = document.getElementById(id);
-		if (el) return parseFloat(el.textContent) || 0;
-		return 0;
-	},
-	set(_, key, value) {
-		const id = toKebabCase(key);
-		const el = document.getElementById(id);
-		if (el) el.textContent = Number(value).toFixed(2);
-
-		//automatically recalc valueTotal if needed
-		if (valueTotalDependencies.includes(key)) {
-			const newValueTotal = valueTotalDependencies.reduce((sum, k) => sum + (totals[k] || 0), 0);
-			totals.valueTotal = newValueTotal;
-		}
-		
-		//automatically recalc feesTotal if any individual fee changes
-		if (feeKeys.includes(key)) {
-			const total = feeKeys.reduce((sum, feeKey) => sum + (totals[feeKey] || 0), 0);
-			totals.feesTotal = total;
-		}
-		
-		return true;
+//gets template from template list, replacements handle {{dynamic stuff}} e.g. {name: name,...}
+function renderTemplate(template, replacements = {}){
+	let html = template;
+	for(const key in replacements){
+		html = html.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), replacements[key]);
 	}
-});
-totals.listingFeeTotal = 0.20;
+	
+	return html.replace(/{{\s*[\w]+\s*}}/g, ''); //clean up any other mustaches
+}
+
+// ===============================
+// constants & elements
+// ===============================
+
 const processingFeeFlat = 0.25;
 const processingRate = 0.03;
 const transactionRate = .065;
+
 const shippingLabelInput = document.getElementById('shipping-label');
 const expensesList = document.getElementById('expenses-list');
 const laborList = document.getElementById('labor-list');
@@ -89,7 +56,7 @@ const templates = {
 			<label>Qty: <input type="number" class="expense-qty" step="0.01" min="0" placeholder="0.00" value="{{qty}}"></label>
 			<label>Cost: <span class="input-unit">$</span><input type="number" class="expense-cost" step="0.01" min="0" placeholder="0.00" value="{{cost}}"></label>
 			<span>Subtotal: $<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
-			<button type="button" class="line-item-remover" onclick="removeItem();" aria-label="Remove this line item">×</button>
+			<button type="button" class="line-item-remover" aria-label="Remove this line item">×</button>
 		</li>`,
 	laborList: `<li>
 			<label>
@@ -99,63 +66,178 @@ const templates = {
 			<label>Hours: <input type="number" class="labor-hours" step="0.01" min="0" placeholder="0.00" value="{{hours}}"></label>
 			<label>Rate: <span class="input-unit">$</span><input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{rate}}"></label>
 			<span>Subtotal: $<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
-			<button type="button" class="line-item-remover" onclick="removeItem();" aria-label="Remove this labor entry">×</button>
+			<button type="button" class="line-item-remover" aria-label="Remove this labor entry">×</button>
 		</li>`,
-	storageList: `<li data-key="{{key}}">
+	storageList: `<li class="storage-item" data-key="{{key}}">
 			<div class="file-name">{{name}}</div>
 			<div class="btn-grp">
-				<button type="button" onclick="loadSavedInput('{{key}}')" aria-label="Load saved setup {{name}}">Load</button>
-				<button type="button" onclick="appendInput('{{key}}')" aria-label="Append saved setup {{name}}">Append</button>
-				<button type="button" onclick="deleteSavedInput('{{key}}')" aria-label="Delete saved setup {{name}}">Delete</button>
+				<button type="button" class="load-btn" aria-label="Load saved setup {{name}}">Load</button>
+				<button type="button" class="append-btn" aria-label="Append saved setup {{name}}">Append</button>
+				<button type="button" class="delete-btn" aria-label="Delete saved setup {{name}}">Delete</button>
 			</div>
-		</li>`
+		</li>`,
+	storageFullWarning: `<div id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</div>`,
+	storageNameWarning: `<p id="storage-name-warning" class="warning" role="alert">Please add a name to save.</p>`
 };
 
+// ===============================
+// totals proxy
+// ===============================
 
-function addItem(list, replacements = {}, placement = 'append') {
+/*
+	totals object reference: these are used to display ouputs on the page
+	{
+		expensesTotal
+		laborTotal
+		valueTotal
+		
+		listingFeeTotal
+		processingFeeTotal
+		transactionFeeTotal
+		shippingLabelFeeTotal
+		offsiteAdFeeTotal
+		feesTotal
+		
+		incomeTaxTotal
+		
+		listingPrice
+		
+		taxTotal
+		customerTotal
+		
+		qcReturn //for quick calculator
+	}
+*/	
+
+const valueTotalDependencies = ['expensesTotal', 'laborTotal']; //the dynamic line item lists
+const updateValueTotal = () => totals.valueTotal = valueTotalDependencies.reduce((sum, k) => sum + (totals[k] || 0), 0);
+
+const feeKeys = Array.from(document.querySelectorAll('.fee-total')).map(el => toCamelCase(el.id));
+const updateFeeTotal = () => totals.feesTotal = feeKeys.reduce((sum, k) => sum + (totals[k] || 0), 0);
+
+const totals = new Proxy({}, {
+	get(_, key) {
+		const id = toKebabCase(key);
+		const el = document.getElementById(id);
+		if (el) return parseFloat(el.textContent) || 0;
+		return 0;
+	},
+	set(_, key, value) {
+		const id = toKebabCase(key);
+		const el = document.getElementById(id);
+		if (el) el.textContent = Number(value).toFixed(2);
+
+		//automatically recalc valueTotal if needed
+		if (valueTotalDependencies.includes(key)) updateValueTotal();
+		
+		//automatically recalc feesTotal if any individual fee changes
+		if (feeKeys.includes(key)) updateFeeTotal();
+		
+		return true;
+	}
+});
+totals.listingFeeTotal = 0.20;
+
+// ===============================
+// value & fees updates
+// ===============================
+
+function updateTotals(){
+	updateAllLineItemLists();
+	calculateListingPrice();
+}
+
+function clearInputs(){
+	expensesList.querySelectorAll('li').forEach(li => li.remove());
+	laborList.querySelectorAll('li').forEach(li => li.remove());
+	shippingLabelInput.value = '';
+	
+	document.getElementById('sales-tax').value = 7.52;
+	document.getElementById('income-tax-rate').value = (30).toFixed(2);
+	document.querySelector('input[name="offsiteAdFee"][value="0"]').checked = true;
+	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
+	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
+	incomeTaxHandler = 'ignore';
+	document.getElementById('save-product-name').value = '';
+	toggleIncomeTaxHandler();
+	updateTotals();
+}
+
+document.getElementById('clear-form-btn')?.addEventListener('click', clearInputs);
+
+// ===============================
+// number input handling
+// ===============================
+
+//just want true numbers in the inputs, no e, +, -
+document.addEventListener('keydown', event => {
+	if(event.target.matches('input[type="number"]') && (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-')){
+		event.preventDefault();
+	}
+});
+
+//force 2 decimal places in number inputs
+document.addEventListener('blur', event => {
+	if (!event.target.matches('input[type="number"]')) return;
+
+	const raw = event.target.value.trim();
+
+	// only format if input is not empty
+	if (raw === '') return;
+
+	const value = parseFloat(raw);
+	if (!isNaN(value)) {
+		event.target.value = value.toFixed(2);
+	}
+}, true);
+
+// ===============================
+// add list item
+// ===============================
+
+//this is used for the line item lists and the saved product setups list
+function addItem(list, replacements = {}, placement = 'append'){
 	const templateKey = toCamelCase(list.id);
 	const wrapper = document.createElement('div');
-	let html = templates[templateKey];
-	
-	for(const key in replacements){
-		const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
-		html = html.replace(regex, replacements[key]);
-	}
-	//clean up any other mustaches
-	html = html.replace(/{{\s*[\w]+\s*}}/g, '');
-	
-	wrapper.innerHTML = html;
+	wrapper.innerHTML = renderTemplate(templates[templateKey], replacements);
 	const newItem = wrapper.firstElementChild;
-	if(placement == 'append'){
-		list.append(newItem);
-	} else {
-		list.prepend(newItem);
-	}
+	
+	placement === 'append' ? list.append(newItem) : list.prepend(newItem);
 	
 	//focus on the newly created line item
 	const firstInput = newItem.querySelector('input');
-	if (firstInput) {
-		firstInput.focus();
-	}
+	firstInput?.focus();
 	
 	//accessibility: update the aria-label of line-item-remover buttons so they easily know whats being removed
 	const nameInput = newItem.querySelector('input[type="text"]');
 	const removeButton = newItem.querySelector('.line-item-remover');
-	
 	if (nameInput && removeButton) {
 		const updateLabel = () => {
-			const val = sanitizeInput(nameInput.value) || 'blank line item';
-			removeButton.setAttribute('aria-label', `Remove ${val}`);
+			const val = sanitizeInput(nameInput.value) || 'blank';
+			removeButton.setAttribute('aria-label', `Remove ${val} line item`);
 		};
 		nameInput.addEventListener('input', updateLabel);
 		updateLabel();
+		
+		removeButton.addEventListener('click', () => {
+			newItem.remove();
+			updateTotals();
+		});
 	}
 	
 	return newItem;
 }
 
-//handle math for the line item lists (expense & labor)
+//add line items buttons
+document.getElementById('add-expense-btn')?.addEventListener('click', () => addItem(expensesList));
+document.getElementById('add-labor-btn')?.addEventListener('click', () => addItem(laborList));
+
+// ===============================
+// line item functions
+// ===============================
+
 function updateLineItemListTotal(list, totalKey) {
+	//line items consist of 2 number inputs each that get multiplied together to output a subtotal
 	const items = Array.from(list.querySelectorAll('li'));
 	const subtotals = items.map(li => {
 		const inputs = Array.from(li.querySelectorAll('input[type="number"]'));
@@ -182,99 +264,109 @@ function updateAllLineItemLists(){
 	updateLineItemListTotal(laborList, 'laborTotal');
 }
 
-function removeItem(){
-	const button = event.currentTarget || event.target;
-	const listItem = button.closest('li');
-	if (!listItem) return;
-	listItem.remove();
-	updateTotals();
-}
+// ===============================
+// shipping label
+// ===============================
 
 shippingLabelInput.addEventListener('input', () => {
 	const shippingCost = parseFloat(shippingLabelInput.value) || 0;
 	totals.shippingLabelFeeTotal = round2(shippingCost * 0.065);
 });
 
-//income tax calculations
-let incomeTaxHandler = document.querySelector('input[name="incomeTax"]:checked').value;
-const incomeTaxRadios = document.querySelectorAll('input[name="incomeTax"]');
-incomeTaxRadios.forEach(radio => {
+// ===============================
+// income tax handlers
+// ===============================
+
+const getIncomeTaxHandler = () => document.querySelector('input[name="incomeTax"]:checked')?.value || 'ignore';
+let incomeTaxHandler = getIncomeTaxHandler();
+document.querySelectorAll('input[name="incomeTax"]').forEach(radio => {
 	radio.addEventListener('change', () => {
-		incomeTaxHandler = document.querySelector('input[name="incomeTax"]:checked').value;
+		incomeTaxHandler = getIncomeTaxHandler();
 		toggleIncomeTaxHandler();
 		calculateListingPrice();
 	});
 });
+
 function toggleIncomeTaxHandler(){
-	if(incomeTaxHandler === 'ignore'){
-		document.getElementById('set-aside-taxes').classList.add('hidden');
-	} else {
-		document.getElementById('set-aside-taxes').classList.remove('hidden');
-	}
+	document.getElementById('set-aside-taxes').classList.toggle('hidden', incomeTaxHandler === 'ignore');
 }
 
-
+//used in calculateListingPrice()
 function calculateIncomeTax(){
 	const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
-	const setAside = totals.laborTotal * incomeTaxRate;
-	if(incomeTaxHandler !== 'ignore'){
-		totals.incomeTaxTotal = setAside;
-	} else {
-		totals.incomeTaxTotal = 0;
-	}
+	totals.incomeTaxTotal = incomeTaxHandler !== 'ignore' ? totals.laborTotal * incomeTaxRate : 0;
 }
 
-//fee calculations
-let offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-const adFeeRadios = document.querySelectorAll('input[name="offsiteAdFee"]');
-adFeeRadios.forEach(radio => {
+// ===============================
+// offsite ad fee handler
+// ===============================
+
+const getOffsiteAdRate = () => parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
+let offsiteAdRate = getOffsiteAdRate();
+document.querySelectorAll('input[name="offsiteAdFee"]').forEach(radio => {
 	radio.addEventListener('change', () => {
-		offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
+		offsiteAdRate = getOffsiteAdRate();
 		calculateListingPrice();
 	});
 });
 
+// ===============================
+// listing price calculations
+// ===============================
+
 function calculateListingPrice(){
 	calculateIncomeTax();
-	if(totals.valueTotal <= 0){
+	if(totals.valueTotal <= 0){ //get the displays back to zero if inputs are empty
 		totals.listingPrice = 0;
 		totals.processingFeeTotal = 0;
 		totals.transactionFeeTotal = 0;
 		totals.taxTotal = 0;
 		totals.customerTotal = 0;
 		totals.offsiteAdFeeTotal = 0;
-	} else{
-		const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
-		let net = totals.valueTotal + (incomeTaxHandler === 'factor' ? totals.incomeTaxTotal : 0);
-		const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
-		const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0;
-		
-		const compoundRate = transactionRate + (processingRate * (1 + salesTaxRate)) + offsiteAdRate;
-		const denominator = 1 - compoundRate;
-		if (denominator > 0) {
-			const listingPriceRaw = (net + (shippingLabel * compoundRate) + totalFlatFees) / denominator;
-			const listingPrice = Math.ceil(listingPriceRaw * 100) / 100;
-			totals.listingPrice = listingPrice;
-			
-			const subtotal = listingPrice + shippingLabel;
-			const transactionFee = round2(listingPrice * transactionRate);
-			const tax = round2(subtotal * salesTaxRate);
-			const processingFee = round2((subtotal + tax) * processingRate) + processingFeeFlat;
-			const offsiteAdFee = round2(subtotal * offsiteAdRate);
-			
-			totals.processingFeeTotal = processingFee;
-			totals.transactionFeeTotal = transactionFee;
-			totals.taxTotal = tax;
-			totals.customerTotal = (subtotal + tax);
-			totals.offsiteAdFeeTotal = offsiteAdFee;
-		}
+		return;
 	}
+	
+	const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
+	let net = totals.valueTotal + (incomeTaxHandler === 'factor' ? totals.incomeTaxTotal : 0);
+	const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
+	const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0; //formats from input 7.52 -> .0752
+	
+	const compoundRate = transactionRate + (processingRate * (1 + salesTaxRate)) + offsiteAdRate;
+	const denominator = 1 - compoundRate;
+	if (denominator <= 0) return;
+	
+	const listingPriceRaw = (net + (shippingLabel * compoundRate) + totalFlatFees) / denominator;
+	const listingPrice = Math.ceil(listingPriceRaw * 100) / 100; //doing it this way to account for rounding
+	totals.listingPrice = listingPrice;
+	
+	const subtotal = listingPrice + shippingLabel;
+	const tax = round2(subtotal * salesTaxRate);
+	totals.transactionFeeTotal = round2(listingPrice * transactionRate);
+	totals.taxTotal = tax;
+	totals.processingFeeTotal = round2((subtotal + tax) * processingRate) + processingFeeFlat;
+	totals.offsiteAdFeeTotal = round2(subtotal * offsiteAdRate);
+	totals.customerTotal = (subtotal + tax);
 }
 
-function updateTotals(){
-	updateAllLineItemLists();
-	calculateListingPrice();
+// ===============================
+// quick calculator
+// ===============================
+
+function calculateReturn(){
+	const qcListingPrice = parseFloat(document.getElementById('qc-listing-price').value) || 0;
+	if (qcListingPrice === 0) return totals.qcReturn = 0; //don't want to show a negative return
+	
+	const qcTax = 1.0752; //just using the average sales tax since this is a simple estimation tool
+	const qcProcessingFee = round2((qcListingPrice * qcTax) * processingRate) + processingFeeFlat;
+	const qcTransactionFee = round2(qcListingPrice * transactionRate);
+	const qcFees = round2(qcProcessingFee + qcTransactionFee + totals.listingFeeTotal);
+	
+	totals.qcReturn = qcListingPrice - qcFees;
 }
+
+// ===============================
+// calculation type handler
+// ===============================
 
 document.addEventListener('input', event => {
 	if (!event.target.matches('input[type="number"]')) return;
@@ -286,19 +378,12 @@ document.addEventListener('input', event => {
 	}
 });
 
-function calculateReturn(){
-	const qcTax = 1.0752;
-	const qcListingPrice = parseFloat(document.getElementById('qc-listing-price').value) || 0;
-	const qcProcessingFee = round2((qcListingPrice * qcTax) * processingRate) + processingFeeFlat;
-	const qcTransactionFee = round2(qcListingPrice * transactionRate);
-	const qcFees = round2(qcProcessingFee + qcTransactionFee + totals.listingFeeTotal);
-	
-	totals.qcReturn = qcListingPrice - qcFees;
-}
+// ===============================
+// localStorage setup
+// ===============================
 
-
-//localStorage handlers
 const elpcPrefix = 'elpc_'; //prefix for localStorage items
+const storageList = document.getElementById('storage-list');
 
 function isQuotaExceededError(error){
 	return (
@@ -312,6 +397,11 @@ function isQuotaExceededError(error){
 
 function displayStorageError(){
 	document.getElementById('storage').classList.add("storage-full");
+	document.getElementById('storage-save-field').insertAdjacentHTML('afterend', templates.storageFullWarning);
+}
+function hideStorageError(){
+	document.getElementById('storage').classList.remove("storage-full");
+	document.querySelector('#storage-full-warning')?.remove();
 }
 
 function isStorageSupported(){
@@ -319,9 +409,10 @@ function isStorageSupported(){
 		if(!localStorage){
 			return false;
 		}
-		const x = '__storage_test__';
-		localStorage.setItem(x, x);
-		localStorage.removeItem(x);
+		const testKey = '__storage_test__';
+		localStorage.setItem(testKey, testKey);
+		localStorage.removeItem(testKey);
+		hideStorageError();
 		return true;
 	} catch (error){
 		const quotaFull = isQuotaExceededError(error) && localStorage.length > 0;
@@ -332,162 +423,149 @@ function isStorageSupported(){
 	}
 }
 
-function sanitizeInput(value){
-	return value.trim().replace(/[<>]/g, '').replace(/\s+/g, ' ');
+isStorageSupported() ? loadSavedSetups() : document.body.classList.add('no-storage');
+
+// ===============================
+// localStorage functions
+// ===============================
+
+function saveProductSetup(){
+	const saveName = sanitizeInput(document.getElementById('save-product-name').value);
+	//feature: you can use the same file name to update a file that's already saved
+	document.querySelector('#storage-name-warning')?.remove();
+	if(!saveName){
+		document.getElementById('save-setup-btn').blur();
+		document.getElementById('storage-save-field').insertAdjacentHTML('afterend', templates.storageNameWarning);
+		return;
+	}
+	
+	const keyName = elpcPrefix+toCamelCase(saveName);
+	const setup = {
+		name: saveName,
+		expenses: {},
+		labor: {},
+		shipping: shippingLabelInput.value,
+		tax: document.getElementById('sales-tax')?.value,
+		adRate: document.querySelector('input[name="offsiteAdFee"]:checked')?.value,
+		taxFactor: incomeTaxHandler,
+		taxRate: document.getElementById('income-tax-rate')?.value,
+		timeStamp: Date.now()
+	};
+	//each of the expenses - has name & qty & cost
+	expensesList.querySelectorAll('li').forEach((li,i) => {
+		setup.expenses[i] = {
+			name: sanitizeInput(li.querySelector('input[type="text"]').value),
+			qty: li.querySelector('.expense-qty').value,
+			cost: li.querySelector('.expense-cost').value
+		};
+	});
+	
+	//each of the labors - has name & hours & rate
+	laborList.querySelectorAll('li').forEach((li,i) => {
+		setup.labor[i] = {
+			name: sanitizeInput(li.querySelector('input[type="text"]').value),
+			hours: li.querySelector('.labor-hours').value,
+			rate: li.querySelector('.labor-rate').value
+		};
+	});
+	
+	try {
+		localStorage.setItem(keyName, JSON.stringify(setup));
+	} catch (error){
+		displayStorageError();
+		return false;
+	}
+	
+	let listItem = document.querySelector('#storage-list [data-key="'+keyName+'"]');
+	if(listItem){
+		storageList.prepend(listItem); //want updated save files to go to the top of the list
+	} else {
+		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
+	}
+	
+	listItem.classList.add("saved");
+	setTimeout(() => listItem.classList.remove('saved'), 1000);
+	
 }
 
-if(!isStorageSupported()){
-	document.body.classList.add("no-storage");
-} else {
-	function saveInputs(){
-		const saveName = sanitizeInput(document.getElementById('save-product-name').value);
-		const keyName = elpcPrefix+toCamelCase(saveName);
-		const inputs = {
-			name: saveName,
-			expenses: {},
-			labor: {},
-			shipping: shippingLabelInput.value,
-			tax: document.getElementById('sales-tax').value,
-			adRate: document.querySelector('input[name="offsiteAdFee"]:checked').value,
-			taxFactor: incomeTaxHandler,
-			taxRate: document.getElementById('income-tax-rate').value,
-			timeStamp: Date.now()
-		};
-		//each of the expenses - has name & qty & cost
-		let counter = 0;
-		expensesList.querySelectorAll('li').forEach(li => {
-			const name = sanitizeInput(li.querySelector('input[type="text"]').value);
-			const qty = li.querySelector('.expense-qty').value;
-			const cost = li.querySelector('.expense-cost').value;
-			inputs.expenses[counter] = {name: name, qty: qty, cost: cost};
-			counter++;
-		});
-		
-		//each of the labors - has name & hours & rate
-		counter = 0;
-		laborList.querySelectorAll('li').forEach(li => {
-			const name = sanitizeInput(li.querySelector('input[type="text"]').value);
-			const hours = li.querySelector('.labor-hours').value;
-			const rate = li.querySelector('.labor-rate').value;
-			inputs.labor[counter] = {name: name, hours: hours, rate: rate};
-			counter++;
-		});
-		
-		try {
-			localStorage.setItem(keyName, JSON.stringify(inputs));
-		} catch (error){
-			displayStorageError();
-			return false;
-		}
-		
-		let listItem = document.querySelector('#storage-list [data-key="'+keyName+'"]');
-		
-		if(listItem){
-			const parent = document.getElementById('storage-list');
-			parent.prepend(listItem);
-		} else {
-			listItem = addItem(document.getElementById('storage-list'), {name: saveName, key: keyName}, 'prepend');
-		}
-		
-		listItem.classList.add("saved");
-		setTimeout(function(){
-			listItem.classList.remove("saved");
-		}, 1000);
-		
-	}
+//creates the list of saved product setups
+function loadSavedSetups(){
+	Object.keys(localStorage)
+		.filter(k => k.startsWith(elpcPrefix))
+		.map(k => ({key:k, data:JSON.parse(localStorage.getItem(k))}))
+		.sort((a,b) => b.data.timeStamp - a.data.timeStamp)
+		.forEach(item => addItem(storageList, {name: item.data.name, key: item.key}));
+}
+
+function getSingleSetup(key){
+	const storageItem = localStorage.getItem(key);
+	return storageItem ? JSON.parse(storageItem) : null;
+}
+
+//used when loading or appending a saved setup
+function loadManufacturingCosts(setup){
+	Object.entries(setup.expenses).forEach(([key, obj]) => {
+		addItem(expensesList, {name: obj.name, qty: obj.qty, cost: obj.cost});
+	});
 	
-	function getSavedInputs(){
-		const items = {};
-		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i);
-			if (key && key.startsWith(elpcPrefix)) {
-				const storageItem = localStorage.getItem(key);
-				const inputs = JSON.parse(storageItem);
-				items[key] = inputs;
-			}
-		}
-		const entries = Object.entries(items);
-		
-		entries.sort(([, a], [, b]) => b.timeStamp - a.timeStamp);
-		
-		entries.forEach(([key, obj]) => {
-			addItem(document.getElementById('storage-list'), {name: obj.name, key: key});
-		});
-		
-	}
-	getSavedInputs();
+	Object.entries(setup.labor).forEach(([key, obj]) => {
+		addItem(laborList, {name: obj.name, hours: obj.hours, rate: obj.rate});
+	});
+}
+
+//used when loading a saved setup
+function loadIndirectCosts(setup){
+	shippingLabelInput.value = setup.shipping;
+	document.getElementById('sales-tax').value = setup.tax;
+	document.getElementById('income-tax-rate').value = setup.taxRate;
 	
+	document.querySelector('input[name="offsiteAdFee"][value="'+setup.adRate+'"]').checked = true;
+	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
 	
-	function clearInputs(){
-		expensesList.querySelectorAll('li').forEach(li => li.remove());
-		laborList.querySelectorAll('li').forEach(li => li.remove());
-		shippingLabelInput.value = '';
-		
-		//todo: (refactor) i feel like anywhere i have this kind of stuff can be handled better
-		document.getElementById('sales-tax').value = 7.52;
-		document.getElementById('income-tax-rate').value = (30).toFixed(2);
-		document.querySelector('input[name="offsiteAdFee"][value="0"]').checked = true;
-		offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-		document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
-		incomeTaxHandler = 'ignore';
-		
-		updateTotals();
-	}
+	document.querySelector('input[name="incomeTax"][value="'+setup.taxFactor+'"]').checked = true;
+	incomeTaxHandler = setup.taxFactor;
+	toggleIncomeTaxHandler();
+}
+
+// ===============================
+// localStorage event handlers
+// ===============================
+
+storageList.addEventListener('click', e => {
+	const li = e.target.closest('.storage-item');
+	if(!li) return;
+	const key = li.dataset.key;
+	const setup = getSingleSetup(key);
 	
-	function getSingleInput(key){
-		const storageItem = localStorage.getItem(key);
-		const inputs = JSON.parse(storageItem);
-		
-		return inputs;
-	}
-	
-	function getManufacturingCost(inputs){
-		Object.entries(inputs.expenses).forEach(([key, obj]) => {
-			addItem(expensesList, {name: obj.name, qty: obj.qty, cost: obj.cost});
-		});
-		
-		Object.entries(inputs.labor).forEach(([key, obj]) => {
-			addItem(laborList, {name: obj.name, hours: obj.hours, rate: obj.rate});
-		});
-	}
-	
-	function getIndirectCost(inputs){
-		document.getElementById('save-product-name').value = inputs.name;
-		shippingLabelInput.value = inputs.shipping;
-		document.getElementById('sales-tax').value = inputs.tax;
-		document.getElementById('income-tax-rate').value = inputs.taxRate;
-		document.querySelector('input[name="offsiteAdFee"][value="'+inputs.adRate+'"]').checked = true;
-		offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
-		document.querySelector('input[name="incomeTax"][value="'+inputs.taxFactor+'"]').checked = true;
-		incomeTaxHandler = inputs.taxFactor;
-		toggleIncomeTaxHandler();
-	}
-	
-	function focusTopOfForm() {
-		const form = document.getElementById('listing-price-calculator');
-		if (!form) return;
-		form.focus({ preventScroll: true });
-		//form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-	}
-	
-	function loadSavedInput(key){
+	if(e.target.classList.contains('load-btn')) {
 		clearInputs();
-		const inputs = getSingleInput(key);
-		getIndirectCost(inputs);
-		getManufacturingCost(inputs);
+		document.getElementById('save-product-name').value = setup.name;
+		loadIndirectCosts(setup);
+		loadManufacturingCosts(setup);
 		updateTotals();
 		focusTopOfForm();
 	}
 	
-	function appendInput(key){
-		const inputs = getSingleInput(key);
-		getManufacturingCost(inputs);
+	if(e.target.classList.contains('append-btn')) {
+		loadManufacturingCosts(setup);
 		updateTotals();
 		focusTopOfForm();
 	}
 	
-	function deleteSavedInput(key){
+	if(e.target.classList.contains('delete-btn')) {
 		localStorage.removeItem(key);
-		document.querySelector('#storage-list [data-key="'+key+'"]').remove();
+		li.remove();
 	}
+});
+
+document.getElementById('save-setup-btn')?.addEventListener('click', saveProductSetup);
+
+// ===============================
+// display adjustments
+// ===============================
+
+function focusTopOfForm() {
+	const form = document.getElementById('listing-price-calculator');
+	form?.focus({ preventScroll: true });
+	//form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
