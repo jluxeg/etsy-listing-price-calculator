@@ -8,16 +8,12 @@
 	without explicit permission from the author.
 -->
 <!--
-	//todo: reword onpage text
 	//todo: favicon and social images
 	//todo: fill out readme
 	//todo: once ready host on github pages
-	
-	//todo: could be helpful to have tip on standard decimals for 5-min time increments 
-	//todo: could be helpful to show total hours on labor
+		
 	//todo: would an ignore feature for line items be useful? if you want to notate it but for some reason not have it included?
 	
-	//todo: if editing a save file display the title in the h2
 	//todo: i think i want the individual fee totals to be listed next to their inputs, like income tax or offsite ads
 -->	
 <html lang="en">
@@ -81,7 +77,7 @@
 <body>
 	<header itemscope itemtype="https://schema.org/WebPageElement">
 		<h1>Listing Price Calculator for Etsy Sellers</h1>
-		<p>A tool to help you figure out how to price your individual listings to sell on Etsy.</p>
+		<p>A tool to help you figure out how to price your individual listings for selling on Etsy.</p>
 	</header>
 	<main aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebPage">
 		
@@ -92,7 +88,7 @@
 			</div>
 			<fieldset id="expenses">
 				<legend class="h3">Materials & Expenses</legend><div class="clearfix"></div>
-				<p>Add the materials you used, as well as different things you'll need for packaging as those costs can add up.</p>
+				<p>Add the materials used to create your product, as well as things like packaging materials since those costs can add up.</p>
 				<ul id="expenses-list" class="form-line-items" aria-live="polite" aria-label="Material and expense items list"></ul>
 				<button type="button" id="add-expense-btn" aria-controls="expenses-list">Add a Material or Expense</button>
 				<div class="total-line">
@@ -103,12 +99,36 @@
 			
 			<fieldset id="labor">
 				<legend class="h3">Labor</legend><div class="clearfix"></div>
-				<p>this will make up your net profit, don't forget to consider things like packaging and admin time. you can also add flat profits you'd like to get for an item.</p>
+				<p>This will make up your net profit, you may also consider adding things like packaging time and admin time.<br/>You can also add flat profits you'd like to get for an item if labor doesn't really apply.</p>
+				<div id="minute-breakdowns" class="tool-tip">
+					<button type="button" class="tool-tip-toggle" aria-controls="minute-breakdowns">Minute to decimal hour breakdowns</button>
+					<div class="tool-tip-body" aria-live="polite">
+						<ul class="p">
+							<li>05 minutes = .08</li>
+							<li>10 minutes = .17</li>
+							<li>15 minutes = .25</li>
+							<li>20 minutes = .33</li>
+							<li>25 minutes = .45</li>
+							<li>30 minutes = .50</li>
+							<li>35 minutes = .58</li>
+							<li>40 minutes = .64</li>
+							<li>45 minutes = .75</li>
+							<li>50 minutes = .83</li>
+							<li>55 minutes = .92</li>
+						</ul>
+					</div>
+				</div>
 				<ul id="labor-list" class="form-line-items" aria-live="polite" aria-label="Labor items list"></ul>
 				<button type="button" id="add-labor-btn" aria-controls="labor-list">Add Labor Type</button>
 				<div class="total-line">
-					<label for="labor-total">Total Labor Cost: $</label>
-					<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					<div>
+						<label for="labor-total">Total Labor Cost: $</label>
+						<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					</div>
+					<div>
+						<label for="labor-hours-total">Total Labor Hours: </label>
+						<output id="labor-hours-total" name="labor-hours-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					</div>
 				</div>
 			</fieldset>
 			
@@ -118,14 +138,21 @@
 			</section>
 			
 			<fieldset>
-				<legend class="h3">Etsy Fee Calculations</legend><div class="clearfix"></div>
-				<p>The different fees that are applied to an Etsy order are as follows:</p>
-				<ul class="p">
-					<li>$0.20 flat listing fee</li>
-					<li>3% of order total (including sales tax) + $0.25 processing fee</li>
-					<li>6.5% of item total (listed price - minus any applied coupons) transaction fee</li>
-					<li>6.5% of shipping label total transaction fee</li>
-				</ul>
+				<legend class="h3">Etsy Fee Calculation Modifiers</legend><div class="clearfix"></div>
+				<p>These have an impact on the overall fee totals, but these actual amounts will vary based on individual order.</p>
+				<div id="fee-breakdowns" class="tool-tip">
+					<button type="button" class="tool-tip-toggle" aria-controls="fee-breakdowns">Etsy seller's fees breakdown</button>
+					<div class="tool-tip-body" aria-live="polite">
+						<p>The different fees that are applied to an Etsy order are as follows:</p>
+						<ul class="p">
+							<li>Listing fee - $0.20</li>
+							<li>Processing fee - 3% of order total (including sales tax) + $0.25</li>
+							<li>Transaction fee - 6.5% of item total (listed price - minus any applied coupons)</li>
+							<li>Shipping Label Transaction fee - 6.5% of shipping label total</li>
+						</ul>
+					</div>
+				</div>
+				
 				<div>
 					<label>Shipping Label Cost Estimate: <span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00"></label>
 				</div>
@@ -138,21 +165,21 @@
 			
 			<fieldset>
 				<legend class="h3">Etsy Offsite Ad Fee Rate</legend><div class="clearfix"></div>
-				<p>ad fees. etsy will automatically advertise your listing on your behalf across social media and other channels. if someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied, and you find out that happened sometime later. the percentage will be applied to the total purchase amount, including shipping, minus taxes.</p>
-				<p>if you made less than $10,000 in a year, your ad fee will be 15%. you can disable the external advertising to avoid this, however this option is also tied into search results and can severely limit your listings appearing in normal search results.</p>
-				<p>if you made more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
+				<p>Etsy will automatically advertise your listing on your behalf across social media and other channels. If someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied to your account. The percentage will be based off the total purchase amount, including shipping, minus taxes.</p>
+				<p>If you have made less than $10,000 in a year, your ad fee will be 15%. You can disable the external advertising to avoid this, however this option is also tied into search engine results and can limit your listings appearing in normal search results (e.g. Google).</p>
+				<p>After you make more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
 				<fieldset>
 					<legend class="sr-only">Ad Rate</legend>
 					<label><input type="radio" name="offsiteAdFee" value="0" checked>0%</label>
 					<label><input type="radio" name="offsiteAdFee" value="12">12%</label>
 					<label><input type="radio" name="offsiteAdFee" value="15">15%</label>
 				</fieldset>
+				<p>*Personally, this has only been applied to 2% of my total orders, so it's not a huge thing, but something you may want to consider factoring for.*</p>
 			</fieldset>
 			
 			<fieldset>
 				<legend class="h3">Income Tax</legend><div class="clearfix"></div>
-				<p>they say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits to cover federal and state, and if you're unlucky, city as well</p>
-				//todo: double check that the factor rate is still correct, because if you are charging extra to help cover tax, then the amount that is taxable is technically more, so view and factor should be different
+				<p>They say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.<br/>You can choose to ignore this in the calculation, view what you should set aside, or factor it into your listing price.</p>
 				<fieldset>
 					<legend class="sr-only">Income Tax Calculation</legend>
 					<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
@@ -198,14 +225,14 @@
 			<form id="quick-calculator" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
 				<fieldset>
 					<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
-					<p>if you want to just enter a listing price and see an estimate of what you would get in return.</p>
+					<p>Enter a listing price to see an estimated return.</p>
 					<div>
 						<label>Listing Price: <span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></label>
 					</div>
 					<div class="total-line">
 						<label for="qc-return">Estimated Return: $</label>
 						<output id="qc-return" class="amount-display" role="status" aria-live="polite">0.00</output>
-						<p>This will vary based on taxes, shipping, and fees. For a more robust calculation use the full tool.</p>
+						<p>This will vary based on taxes, shipping, and fees.<br/>For a more robust calculation use the full tool.</p>
 					</div>
 				</fieldset>
 			</form>

@@ -9,8 +9,7 @@
 
 //todo: responsive js once layout is in place
 
-//todo: could be handy to have a notice before deleting a save incase a misclick
-
+//todo: double check that the factor rate is still correct, because if you are charging extra to help cover tax, then the amount that is taxable is technically more, so view and factor might be different
 
 // ===============================
 // utility functions
@@ -70,10 +69,16 @@ const templates = {
 		</li>`,
 	storageList: `<li class="storage-item" data-key="{{key}}">
 			<div class="file-name">{{name}}</div>
-			<div class="btn-grp">
-				<button type="button" class="load-btn" aria-label="Load saved setup {{name}}">Load</button>
-				<button type="button" class="append-btn" aria-label="Append saved setup {{name}}">Append</button>
-				<button type="button" class="delete-btn" aria-label="Delete saved setup {{name}}">Delete</button>
+			<div class="file-actions">
+				<div class="btn-grp main-actions">
+					<button type="button" class="load-btn" aria-label="Load saved setup {{name}}">Load</button>
+					<button type="button" class="append-btn" aria-label="Append saved setup {{name}}">Append</button>
+					<button type="button" class="delete-btn" aria-label="Delete saved setup {{name}}">Delete</button>
+				</div>
+				<div class="btn-grp confirm-actions hidden">
+					<button type="button" class="confirm-delete-btn" aria-label="Confirm delete saved setup {{name}}">Confirm Delete</button>
+					<button type="button" class="cancel-delete-btn" aria-label="Cancel delete saved setup {{name}}">Cancel</button>
+				</div>
 			</div>
 		</li>`,
 	storageFullWarning: `<div id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</div>`,
@@ -106,6 +111,7 @@ const templates = {
 		customerTotal
 		
 		qcReturn //for quick calculator
+		laborHoursTotal //only for display, not calculation
 	}
 */	
 
@@ -144,6 +150,7 @@ totals.listingFeeTotal = 0.20;
 
 function updateTotals(){
 	updateAllLineItemLists();
+	getTotalLaborHours();
 	calculateListingPrice();
 }
 
@@ -159,6 +166,7 @@ function clearInputs(){
 	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
 	incomeTaxHandler = 'ignore';
 	document.getElementById('save-product-name').value = '';
+	updateProductHeading('clear');
 	toggleIncomeTaxHandler();
 	updateTotals();
 }
@@ -263,6 +271,21 @@ function updateAllLineItemLists(){
 	updateLineItemListTotal(expensesList, 'expensesTotal');
 	updateLineItemListTotal(laborList, 'laborTotal');
 }
+
+//extra handling to display total labor hours
+function getTotalLaborHours() {
+	const inputs = document.querySelectorAll('.labor-hours');
+	const hours = Array.from(inputs).reduce((total, input) => {
+		const value = round2(parseFloat(input.value)) || 0;
+		return total + value;
+	}, 0);
+	totals.laborHoursTotal = hours;
+}
+laborList.addEventListener('input', event => {
+	if (event.target.matches('.labor-hours')) {
+		getTotalLaborHours();
+	}
+});
 
 // ===============================
 // shipping label
@@ -483,6 +506,8 @@ function saveProductSetup(){
 		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
 	}
 	
+	updateProductHeading('save', setup.name);
+	
 	listItem.classList.add("saved");
 	setTimeout(() => listItem.classList.remove('saved'), 1000);
 	
@@ -539,6 +564,7 @@ storageList.addEventListener('click', e => {
 	
 	if(e.target.classList.contains('load-btn')) {
 		clearInputs();
+		updateProductHeading('load', setup.name);
 		document.getElementById('save-product-name').value = setup.name;
 		loadIndirectCosts(setup);
 		loadManufacturingCosts(setup);
@@ -553,8 +579,19 @@ storageList.addEventListener('click', e => {
 	}
 	
 	if(e.target.classList.contains('delete-btn')) {
+		li.querySelector('.main-actions').classList.add('hidden');
+		li.querySelector('.confirm-actions').classList.remove('hidden');
+	}
+	
+	if(e.target.classList.contains('confirm-delete-btn')) {
+		updateProductHeading('delete', setup.name);
 		localStorage.removeItem(key);
 		li.remove();
+	}
+	
+	if(e.target.classList.contains('cancel-delete-btn')) {
+		li.querySelector('.main-actions').classList.remove('hidden');
+		li.querySelector('.confirm-actions').classList.add('hidden');
 	}
 });
 
@@ -569,3 +606,52 @@ function focusTopOfForm() {
 	form?.focus({ preventScroll: true });
 	//form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+/* rules for updateProductHeading()
+	on load: replace current heading with save name
+	on append: do nothing
+	on delete: if this one is currently open, change heading to default, empty save name field; else do nothing
+	on save: replace current heading with save name
+	on clear: replace current heading with default
+*/
+function updateProductHeading(action, text = ''){
+	const heading = document.getElementById('calculator-heading');
+	const defaultValue = 'Your Product Information';
+	text = text === '' ? defaultValue : text;
+	
+	switch (action) {
+		case "load":
+			heading.textContent = text;
+			break;
+		
+		case "delete":
+			if(heading.textContent == text){
+				heading.textContent = defaultValue;
+				//not the best place for this since it's a different thing than function claims, but the simplest way to implement this
+				document.getElementById('save-product-name').value = '';
+			}
+			break;
+		
+		case "save":
+			heading.textContent = text;
+			break;
+			
+		case "clear":
+			heading.textContent = defaultValue;
+			break;
+	}
+}
+
+// ===============================
+// display interactions
+// ===============================
+
+//tool-tips
+document.querySelectorAll('.tool-tip-toggle').forEach(btn => {
+	btn.addEventListener('click', e => {
+		const parent = e.target.closest('.tool-tip');
+		if (parent) parent.classList.toggle('open');
+	});
+});
+
+

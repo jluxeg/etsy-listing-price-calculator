@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Quantity field for materials & expenses line items
+- Dynamic product title
+- Delete confirmations on saved product setups to prevent mis-clicks
+- Display for total labor hours
+- Tool tips for helpful information
 
 ### Changed
 
