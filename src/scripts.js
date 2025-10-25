@@ -48,23 +48,23 @@ const laborList = document.getElementById('labor-list');
 
 const templates = {
 	expensesList: `<li>
-			<label>
+			<label class="name">
 				<span class="sr-only">Material or Expense Name</span>
 				<input type="text" placeholder="Material or Expense" value="{{name}}">
 			</label>
-			<label>Qty: <input type="number" class="expense-qty" step="0.01" min="0" placeholder="0.00" value="{{qty}}"></label>
-			<label>Cost: <span class="input-unit">$</span><input type="number" class="expense-cost" step="0.01" min="0" placeholder="0.00" value="{{cost}}"></label>
-			<span>Subtotal: $<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
+			<label class="quantifier"><span>Qty: </span><span><input type="number" class="expense-qty" step="0.01" min="0" placeholder="0.00" value="{{qty}}"></span></label>
+			<label class="amount"><span>Cost: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" class="expense-cost" step="0.01" min="0" placeholder="0.00" value="{{cost}}"></span></label>
+			<span class="sub"><span>Subtotal: </span><span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span></span>
 			<button type="button" class="line-item-remover" aria-label="Remove this line item">×</button>
 		</li>`,
 	laborList: `<li>
-			<label>
+			<label class="name">
 				<span class="sr-only">Labor Type Name</span>
 				<input type="text" placeholder="Labor Type" value="{{name}}">
 			</label>
-			<label>Hours: <input type="number" class="labor-hours" step="0.01" min="0" placeholder="0.00" value="{{hours}}"></label>
-			<label>Rate: <span class="input-unit">$</span><input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{rate}}"></label>
-			<span>Subtotal: $<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
+			<label class="quantifier"><span>Hours: </span><span><input type="number" class="labor-hours" step="0.01" min="0" placeholder="0.00" value="{{hours}}"></span></label>
+			<label class="amount"><span>Rate: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{rate}}"></span></label>
+			<span class="sub"><span>Subtotal: </span><span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span></span>
 			<button type="button" class="line-item-remover" aria-label="Remove this labor entry">×</button>
 		</li>`,
 	storageList: `<li class="storage-item" data-key="{{key}}">
@@ -569,6 +569,12 @@ storageList.addEventListener('click', e => {
 		loadIndirectCosts(setup);
 		loadManufacturingCosts(setup);
 		updateTotals();
+		
+		//todo: check about function for this
+		document.body.classList.remove('overflow');
+		document.getElementById('storage').classList.remove('open');
+		document.getElementById('open-storage').focus();
+		
 		focusTopOfForm();
 	}
 	
@@ -601,10 +607,12 @@ document.getElementById('save-setup-btn')?.addEventListener('click', saveProduct
 // display adjustments
 // ===============================
 
-function focusTopOfForm() {
+function focusTopOfForm(focus = true) {
 	const form = document.getElementById('listing-price-calculator');
-	form?.focus({ preventScroll: true });
-	//form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	if(focus){
+		form?.focus();
+		document.querySelector('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
 }
 
 /* rules for updateProductHeading()
@@ -654,4 +662,42 @@ document.querySelectorAll('.tool-tip-toggle').forEach(btn => {
 	});
 });
 
+//more-info
+document.querySelectorAll('.more-info-toggle').forEach(btn => {
+	btn.addEventListener('click', e => {
+		const parent = e.target.closest('.more-info');
+		if (parent) parent.classList.toggle('open');
+	});
+});
 
+//estimates
+document.getElementById('estimates-toggle').addEventListener('click', e => {
+	document.getElementById('estimates-toggle').classList.toggle('open');
+	document.getElementById('estimates').classList.toggle('open');
+});
+
+//storage
+document.getElementById('open-storage').addEventListener('click', e => {
+	document.body.classList.add('overflow');
+	document.getElementById('storage').classList.add('open');
+	document.getElementById('save-product-name').focus();
+});
+document.getElementById('close-storage').addEventListener('click', e => {
+	document.body.classList.remove('overflow');
+	document.getElementById('storage').classList.remove('open');
+	document.getElementById('open-storage').focus();
+	//focusTopOfForm(); //todo: which is better?
+});
+
+//quick-calculator
+
+document.getElementById('open-qc').addEventListener('click', e => {
+	document.body.classList.add('overflow');
+	document.getElementById('quick-calculator').classList.add('open');
+	document.getElementById('qc-listing-price').focus();
+});
+document.getElementById('close-qc').addEventListener('click', e => {
+	document.body.classList.remove('overflow');
+	document.getElementById('quick-calculator').classList.remove('open');
+	document.getElementById('open-qc').focus();
+});

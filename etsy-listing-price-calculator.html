@@ -11,10 +11,10 @@
 	//todo: favicon and social images
 	//todo: fill out readme
 	//todo: once ready host on github pages
-		
-	//todo: would an ignore feature for line items be useful? if you want to notate it but for some reason not have it included?
+
+	//todo: i think make the product title into the save name input itself
 	
-	//todo: i think i want the individual fee totals to be listed next to their inputs, like income tax or offsite ads
+	
 -->	
 <html lang="en">
 <head>
@@ -77,20 +77,26 @@
 <body>
 	<header itemscope itemtype="https://schema.org/WebPageElement">
 		<h1>Listing Price Calculator for Etsy Sellers</h1>
-		<p>A tool to help you figure out how to price your individual listings for selling on Etsy.</p>
+		<p>A tool to help you figure out how to price your listings on Etsy.</p>
+		<button type="button" id="open-qc" aria-controls="quick-calculator">Quick Calculator</button>
 	</header>
 	<main aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebPage">
-		
-		<form id="listing-price-calculator" tabindex="-1" aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
-			<div style="display: flex; justify-content: space-between; align-items: start;">
+		<div class="sticky-header">
+			<div class="top">
 				<h2 id="calculator-heading">Your Product Information</h2>
-				<button type="button" id="clear-form-btn">Clear All Inputs</button>
+				<button type="button" id="open-storage" aria-controls="storage">My Products</button>
 			</div>
+			
+		</div>
+		<div class="wrap">
+			<button type="button" id="clear-form-btn">Clear All Inputs</button>
+		</div>
+		<form id="listing-price-calculator" tabindex="-1" aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
 			<fieldset id="expenses">
 				<legend class="h3">Materials & Expenses</legend><div class="clearfix"></div>
 				<p>Add the materials used to create your product, as well as things like packaging materials since those costs can add up.</p>
 				<ul id="expenses-list" class="form-line-items" aria-live="polite" aria-label="Material and expense items list"></ul>
-				<button type="button" id="add-expense-btn" aria-controls="expenses-list">Add a Material or Expense</button>
+				<button type="button" id="add-expense-btn" class="add-line-item-btn" aria-controls="expenses-list">Add a Material or Expense</button>
 				<div class="total-line">
 					<label for="expenses-total">Total Expenses: $</label>
 					<output id="expenses-total" name="expenses-total" class="amount-display" role="status" aria-live="polite">0.00</output>
@@ -119,11 +125,10 @@
 					</div>
 				</div>
 				<ul id="labor-list" class="form-line-items" aria-live="polite" aria-label="Labor items list"></ul>
-				<button type="button" id="add-labor-btn" aria-controls="labor-list">Add Labor Type</button>
+				<button type="button" id="add-labor-btn" class="add-line-item-btn" aria-controls="labor-list">Add Labor Type</button>
 				<div class="total-line">
 					<div>
-						<label for="labor-total">Total Labor Cost: $</label>
-						<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+						<label>Total Labor Value: <span class="flex-wrap">$<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output></span></label>
 					</div>
 					<div>
 						<label for="labor-hours-total">Total Labor Hours: </label>
@@ -132,13 +137,14 @@
 				</div>
 			</fieldset>
 			
+			<!--
 			<section itemscope itemtype="https://schema.org/WebPageElement" aria-label="Product Value">
-				<h3>Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
-				<p>Your total product value including labor, material, and expenses.</p>
+				
+				<p style="margin-bottom: 0;">Your total product value including labor, material, and expenses.</p>
 			</section>
-			
+			-->
 			<fieldset>
-				<legend class="h3">Etsy Fee Calculation Modifiers</legend><div class="clearfix"></div>
+				<legend class="h3">Etsy Base Fee Calculations</legend><div class="clearfix"></div>
 				<p>These have an impact on the overall fee totals, but these actual amounts will vary based on individual order.</p>
 				<div id="fee-breakdowns" class="tool-tip">
 					<button type="button" class="tool-tip-toggle" aria-controls="fee-breakdowns">Etsy seller's fees breakdown</button>
@@ -153,48 +159,63 @@
 					</div>
 				</div>
 				
-				<div>
-					<label>Shipping Label Cost Estimate: <span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00"></label>
-				</div>
+				<label class="one-line-input"><span>Shipping Label Estimate: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00"></span></label>
+				<label class="one-line-input"><span>Sales Tax Estimate: </span><span><input type="number" class="percent" id="sales-tax" name="sales-tax" step="0.01" value="7.52" min="0" aria-describedby="sales-tax-note"><span class="input-unit">%</span></span></label>
 				<br/>
-				<div>
-					<label>Sales Tax Estimate: <input type="number" class="percent" id="sales-tax" name="sales-tax" step="0.01" value="7.52" min="0" aria-describedby="sales-tax-note"><span class="input-unit">%</span></label>
-					<small id="sales-tax-note">(while this varies state to state the national average is 7.52%)</small>
-				</div>
+				<small id="sales-tax-note">(While this varies state to state, the national average is 7.52%.)</small>
 			</fieldset>
 			
 			<fieldset>
 				<legend class="h3">Etsy Offsite Ad Fee Rate</legend><div class="clearfix"></div>
-				<p>Etsy will automatically advertise your listing on your behalf across social media and other channels. If someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied to your account. The percentage will be based off the total purchase amount, including shipping, minus taxes.</p>
-				<p>If you have made less than $10,000 in a year, your ad fee will be 15%. You can disable the external advertising to avoid this, however this option is also tied into search engine results and can limit your listings appearing in normal search results (e.g. Google).</p>
-				<p>After you make more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
+				<p>need a quick line here</p>
+				<div id="offsite-ad-info" class="more-info">
+					<button type="button" class="more-info-toggle" aria-controls="offsite-ad-info">Offsite Ad Rate Info</button>
+					<div class="more-info-body" aria-live="polite">
+						<p>Etsy will automatically advertise your listing on your behalf across social media and other channels. If someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied to your account. The percentage will be based off the total purchase amount, including shipping, minus taxes.</p>
+						<p>If you have made less than $10,000 in a year, your ad fee will be 15%. You can disable the external advertising to avoid this, however this option is also tied into search engine results and can limit your listings appearing in normal search results (e.g. Google).</p>
+						<p>After you make more than $10,000 in a year the fee will be 12% and you can not disable the option.</p>
+					</div>
+				</div>
+				
 				<fieldset>
 					<legend class="sr-only">Ad Rate</legend>
 					<label><input type="radio" name="offsiteAdFee" value="0" checked>0%</label>
 					<label><input type="radio" name="offsiteAdFee" value="12">12%</label>
 					<label><input type="radio" name="offsiteAdFee" value="15">15%</label>
 				</fieldset>
-				<p>*Personally, this has only been applied to 2% of my total orders, so it's not a huge thing, but something you may want to consider factoring for.*</p>
 			</fieldset>
 			
 			<fieldset>
 				<legend class="h3">Income Tax</legend><div class="clearfix"></div>
-				<p>They say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.<br/>You can choose to ignore this in the calculation, view what you should set aside, or factor it into your listing price.</p>
+				<p>need a quick line here</p>
+				<div id="income-tax-info" class="more-info">
+					<button type="button" class="more-info-toggle" aria-controls="income-tax-info">Income Tax Info</button>
+					<div class="more-info-body" aria-live="polite">
+						<p>They say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.<br/>You can choose to ignore this in the calculation, view what you should set aside, or factor it into your listing price.</p>
+					</div>
+				</div>
+				
 				<fieldset>
 					<legend class="sr-only">Income Tax Calculation</legend>
 					<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
 					<label><input type="radio" name="incomeTax" value="view">View</label>
 					<label><input type="radio" name="incomeTax" value="factor">Factor</label>
 				</fieldset>
-				<label>Tax Rate: <input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00"><span class="input-unit">%</span></label>
+				<label class="one-line-input"><span>Tax Rate: </span><span><input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00"><span class="input-unit">%</span></span></label>
 			</fieldset>
 		</form>
 		
 		<aside aria-labelledby="totals-heading" itemscope itemtype="https://schema.org/WebPageElement">
 			<section>
-				<h2 id="totals-heading">Suggested Listing Price: $<output id="listing-price" class="amount-display" role="status" aria-live="polite">0.00</output></h2>
 				
-				<h3>Estimated Totals:</h3>
+			</section>
+			
+			
+			
+			
+		</aside>
+		<div class="sticky-footer">
+			<div id="estimates">
 				<ul id="estimated-totals">
 					<li>Listing Fee: $<output id="listing-fee-total" class="fee-total" role="status" aria-live="polite">0.20</output></li>
 					<li>Processing Fee: $<output id="processing-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
@@ -220,9 +241,18 @@
 						<output id="tax-total" class="amount-display" role="status" aria-live="polite">0.00</output>
 					</div>
 				</div>
-			</section>
+			</div>
+			<p style="margin-bottom: 0;">Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
+			<div style="display: flex; justify-content: space-between; align-items: center;">
+				<h3 id="totals-heading">Suggested Listing Price: $<output id="listing-price" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
+				<button type="button" id="estimates-toggle" aria-controls="estimates">Fee Estimates</button>
+			</div>
 			
-			<form id="quick-calculator" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
+		</div>
+	</main>
+	
+	<form id="quick-calculator" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
+				<button type="button" id="close-qc" aria-label="Close quick calculator modal">×</button>
 				<fieldset>
 					<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
 					<p>Enter a listing price to see an estimated return.</p>
@@ -236,20 +266,21 @@
 					</div>
 				</fieldset>
 			</form>
-			
-			<form id="storage" aria-labelledby="saved-setups-heading" itemscope itemtype="https://schema.org/WebApplication">
-				<fieldset>
-					<legend id="saved-setups-heading" class="h2">Saved Product Setups</legend><div class="clearfix"></div>
-					<div id="storage-save-field">
-						<label for="save-product-name" class="sr-only">Setup Name</label>
-						<input type="text" id="save-product-name" name="save-product-name" placeholder="Product Setup Name">
-						<button type="button" id="save-setup-btn" aria-controls="storage-list">Save Setup</button>
-					</div>
-					<ul id="storage-list" aria-label="Saved product setups list"></ul>
-				</fieldset>
-			</form>
-		</aside>
-	</main>
+	
+	<form id="storage" aria-labelledby="saved-setups-heading" itemscope itemtype="https://schema.org/WebApplication">
+		<button type="button" id="close-storage" aria-label="Close saved product setups modal">×</button>
+		<fieldset>
+			<legend id="saved-setups-heading" class="h2">Saved Product Setups</legend><div class="clearfix"></div>
+			<div id="storage-save-field">
+				<label for="save-product-name" class="sr-only">Setup Name</label>
+				<input type="text" id="save-product-name" name="save-product-name" placeholder="Product Setup Name">
+				<button type="button" id="save-setup-btn" aria-controls="storage-list">Save Setup</button>
+			</div>
+			<ul id="storage-list" aria-label="Saved product setups list"></ul>
+		</fieldset>
+	</form>
+	
+	
 	
 	<footer itemscope itemtype="https://schema.org/CreativeWork">
 		<small>*I am not a tax professional, and this site can not be used as tax advice.*</small>
