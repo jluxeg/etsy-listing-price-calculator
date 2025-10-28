@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Base mobile styling in place
 
+### Fixed
+
+- Factoring income tax now calculates so that you end up with your base net amount after the amount to set aside for taxes
+
 ## [v0.2.0] - 2025-10-23
 
 ### Added

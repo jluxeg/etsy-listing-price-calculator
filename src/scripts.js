@@ -9,7 +9,6 @@
 
 //todo: responsive js once layout is in place
 
-//todo: double check that the factor rate is still correct, because if you are charging extra to help cover tax, then the amount that is taxable is technically more, so view and factor might be different
 
 // ===============================
 // utility functions
@@ -314,10 +313,25 @@ function toggleIncomeTaxHandler(){
 	document.getElementById('set-aside-taxes').classList.toggle('hidden', incomeTaxHandler === 'ignore');
 }
 
-//used in calculateListingPrice()
+//used in calculateListingPrice() //todo: this might be handled better
 function calculateIncomeTax(){
 	const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
-	totals.incomeTaxTotal = incomeTaxHandler !== 'ignore' ? totals.laborTotal * incomeTaxRate : 0;
+	
+	switch (incomeTaxHandler) {
+		case "ignore":
+			totals.incomeTaxTotal = 0;
+			break;
+		
+		case "view":
+			totals.incomeTaxTotal = totals.laborTotal * incomeTaxRate;
+			break;
+		
+		case "factor":
+			totals.incomeTaxTotal = (totals.laborTotal / (1 - incomeTaxRate)) - totals.laborTotal;
+			break;
+	}
+		
+	return incomeTaxRate;
 }
 
 // ===============================
@@ -338,7 +352,7 @@ document.querySelectorAll('input[name="offsiteAdFee"]').forEach(radio => {
 // ===============================
 
 function calculateListingPrice(){
-	calculateIncomeTax();
+	const incomeTaxRate = calculateIncomeTax();
 	if(totals.valueTotal <= 0){ //get the displays back to zero if inputs are empty
 		totals.listingPrice = 0;
 		totals.processingFeeTotal = 0;
@@ -350,7 +364,7 @@ function calculateListingPrice(){
 	}
 	
 	const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
-	let net = totals.valueTotal + (incomeTaxHandler === 'factor' ? totals.incomeTaxTotal : 0);
+	let net = incomeTaxHandler === 'factor' ? totals.valueTotal / (1 - (incomeTaxRate || 0)) : totals.valueTotal;
 	const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
 	const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0; //formats from input 7.52 -> .0752
 	
@@ -686,7 +700,6 @@ document.getElementById('close-storage').addEventListener('click', e => {
 	document.body.classList.remove('overflow');
 	document.getElementById('storage').classList.remove('open');
 	document.getElementById('open-storage').focus();
-	//focusTopOfForm(); //todo: which is better?
 });
 
 //quick-calculator
