@@ -20,6 +20,7 @@
 	//todo: i want tool-tips to be in sticky section header
 	//todo: make fee breakdown tool-tip into a more-info
 	//todo: i think sections should be able to collapse
+	//todo: sticky legends need tops adjusted based on sticky header height
 */
 
 * {
@@ -45,7 +46,7 @@ h2, h3, .h2, .h3 {
 	margin-top: 0;
 }
 h2 {
-	font-size: clamp(1em, 5vw, 2em);
+	font-size: clamp(.5em, 4vw, 1.75em);
 }
 .h2 {
 	font-size: 24px;
@@ -93,7 +94,7 @@ main {
 aside {
 	display: none;
 }
-section, fieldset {
+fieldset, .modal-body {
 	background: #fff;
 	border: 1px solid #0e0e0e2e;
 	border-radius: 12px;
@@ -110,6 +111,7 @@ fieldset fieldset {
 	gap: 16px;
 	width: 100%;
 	margin-bottom: 0;
+	position: static;
 }
 fieldset {
 	padding-top: 10px;
@@ -117,7 +119,7 @@ fieldset {
 legend {
 	float: left;
 	position: sticky;
-	top: 65px;
+	top: 72px;
 	background: #fff;
 	width: 100%;
 	padding: 10px 0;
@@ -165,6 +167,16 @@ button:hover, button:focus, button:active {
 	color: #fff;
 	background: #222;
 }
+
+button img {
+	width: 16px;
+	height: auto;
+}
+
+button:hover img, button:focus img, button:active img {
+	filter: invert(1) hue-rotate(180deg);
+}
+
 input[type="number"], input[type="text"] {
 	appearance: none;
 	background: #fff;
@@ -268,7 +280,7 @@ input[type="radio"] {
 .no-storage #storage, .no-storage #open-storage {
 	display: none;
 }
-#storage.storage-full #storage-save-field {
+.storage-full #save-setup-btn {
 	pointer-events:none;
 	opacity: .5;
 }
@@ -307,7 +319,7 @@ input[type="radio"] {
 	color: red;
 	width: 100%;
 }
-.sticky-header {
+#sticky-header {
 	position: sticky;
 	top: 0;
 	z-index: 2;
@@ -316,21 +328,38 @@ input[type="radio"] {
 	
 	border-bottom: 1px solid #0e0e0e2e;
 	border-top: 2px solid #f1641e;
-	
-}
-.sticky-header .top {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
 	padding: 15px 20px;
 }
-.sticky-header .bottom {
-	padding: 15px 20px;
-	
+#save-product-name {
+	width: 100%;
+	border: 1px solid #949494;
+	border-radius: 8px;
+	padding: 8px 12px;
 	box-shadow: 0px 1px 4px 0px inset #0e0e0e17;
+	white-space: nowrap;
+	overflow-wrap: break-word;
 }
-.sticky-header h2 {
+#save-product-name:empty:before {
+	content: attr(data-placeholder);
+	color: #999;
+	pointer-events: none;
+}
+
+#sticky-header .top {
+	
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+#sticky-header .bottom {
+
+}
+#sticky-header h2 {
 	margin-bottom: 0;
+}
+
+#header-notices p {
+	margin: 8px 0 0;
 }
 
 .sticky-footer {
@@ -531,16 +560,11 @@ input[type="radio"] {
 	width: fit-content;
 	border: none;
 }
-#storage fieldset {
+#storage .modal-body {
 	height: 100%;
 	margin-bottom: 0;
 	display: flex;
 	flex-direction: column;
-}
-#storage-save-field {
-	display: flex;
-	gap: 8px;
-	margin: 10px 0;
 }
 #storage-list {
 	list-style-type: none;

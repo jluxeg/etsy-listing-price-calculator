@@ -8,6 +8,7 @@
 */
 
 //todo: responsive js once layout is in place
+//todo: refactor layout js
 
 
 // ===============================
@@ -80,8 +81,9 @@ const templates = {
 				</div>
 			</div>
 		</li>`,
-	storageFullWarning: `<div id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</div>`,
-	storageNameWarning: `<p id="storage-name-warning" class="warning" role="alert">Please add a name to save.</p>`
+	storageFullWarning: `<p id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</p>`,
+	storageNameWarning: `<p id="storage-name-warning" class="warning" role="alert">Please add a name to save.</p>`,
+	productSetupSaved: `<p id="product-setup-saved" class="success" role="alert">Saved!</p>`
 };
 
 // ===============================
@@ -164,7 +166,7 @@ function clearInputs(){
 	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
 	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
 	incomeTaxHandler = 'ignore';
-	document.getElementById('save-product-name').value = '';
+	document.getElementById('save-product-name').textContent = 'Your Product Information';
 	updateProductHeading('clear');
 	toggleIncomeTaxHandler();
 	updateTotals();
@@ -235,7 +237,7 @@ function addItem(list, replacements = {}, placement = 'append'){
 	return newItem;
 }
 
-//add line items buttons
+//buttons to add line items
 document.getElementById('add-expense-btn')?.addEventListener('click', () => addItem(expensesList));
 document.getElementById('add-labor-btn')?.addEventListener('click', () => addItem(laborList));
 
@@ -433,11 +435,11 @@ function isQuotaExceededError(error){
 }
 
 function displayStorageError(){
-	document.getElementById('storage').classList.add("storage-full");
-	document.getElementById('storage-save-field').insertAdjacentHTML('afterend', templates.storageFullWarning);
+	document.body.classList.add("storage-full");
+	document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.storageFullWarning);
 }
 function hideStorageError(){
-	document.getElementById('storage').classList.remove("storage-full");
+	document.body.classList.remove("storage-full");
 	document.querySelector('#storage-full-warning')?.remove();
 }
 
@@ -467,12 +469,12 @@ isStorageSupported() ? loadSavedSetups() : document.body.classList.add('no-stora
 // ===============================
 
 function saveProductSetup(){
-	const saveName = sanitizeInput(document.getElementById('save-product-name').value);
+	const saveName = sanitizeInput(document.getElementById('save-product-name').textContent);
 	//feature: you can use the same file name to update a file that's already saved
 	document.querySelector('#storage-name-warning')?.remove();
 	if(!saveName){
 		document.getElementById('save-setup-btn').blur();
-		document.getElementById('storage-save-field').insertAdjacentHTML('afterend', templates.storageNameWarning);
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.storageNameWarning);
 		return;
 	}
 	
@@ -520,7 +522,11 @@ function saveProductSetup(){
 		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
 	}
 	
+	document.getElementById('save-setup-btn').blur();
+	
 	updateProductHeading('save', setup.name);
+	document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupSaved);
+	setTimeout(() => document.getElementById('product-setup-saved').remove(), 1000);
 	
 	listItem.classList.add("saved");
 	setTimeout(() => listItem.classList.remove('saved'), 1000);
@@ -579,7 +585,7 @@ storageList.addEventListener('click', e => {
 	if(e.target.classList.contains('load-btn')) {
 		clearInputs();
 		updateProductHeading('load', setup.name);
-		document.getElementById('save-product-name').value = setup.name;
+		document.getElementById('save-product-name').textContent = setup.name;
 		loadIndirectCosts(setup);
 		loadManufacturingCosts(setup);
 		updateTotals();
@@ -633,11 +639,12 @@ function focusTopOfForm(focus = true) {
 	on load: replace current heading with save name
 	on append: do nothing
 	on delete: if this one is currently open, change heading to default, empty save name field; else do nothing
-	on save: replace current heading with save name
+	on save: replace current heading with cleaned save name
 	on clear: replace current heading with default
 */
+//todo: do i need this??
 function updateProductHeading(action, text = ''){
-	const heading = document.getElementById('calculator-heading');
+	const heading = document.getElementById('save-product-name');
 	const defaultValue = 'Your Product Information';
 	text = text === '' ? defaultValue : text;
 	
@@ -649,8 +656,6 @@ function updateProductHeading(action, text = ''){
 		case "delete":
 			if(heading.textContent == text){
 				heading.textContent = defaultValue;
-				//not the best place for this since it's a different thing than function claims, but the simplest way to implement this
-				document.getElementById('save-product-name').value = '';
 			}
 			break;
 		
@@ -694,7 +699,7 @@ document.getElementById('estimates-toggle').addEventListener('click', e => {
 document.getElementById('open-storage').addEventListener('click', e => {
 	document.body.classList.add('overflow');
 	document.getElementById('storage').classList.add('open');
-	document.getElementById('save-product-name').focus();
+	document.getElementById('storage-list').focus();
 });
 document.getElementById('close-storage').addEventListener('click', e => {
 	document.body.classList.remove('overflow');
@@ -713,4 +718,23 @@ document.getElementById('close-qc').addEventListener('click', e => {
 	document.body.classList.remove('overflow');
 	document.getElementById('quick-calculator').classList.remove('open');
 	document.getElementById('open-qc').focus();
+});
+
+
+//save name field
+const editable = document.getElementById('save-product-name');
+
+editable.addEventListener('input', () => {
+	// remove the <br>'s that get added
+	if (
+		editable.childNodes.length === 1 &&
+		editable.firstChild.nodeName === 'BR'
+	) {
+		editable.innerHTML = '';
+	}
+	
+	//maybe a rogue space is there
+	if (!editable.textContent.trim()) {
+		editable.innerHTML = '';
+	}
 });

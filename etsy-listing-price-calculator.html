@@ -12,7 +12,6 @@
 	//todo: fill out readme
 	//todo: once ready host on github pages
 
-	//todo: i think make the product title into the save name input itself
 	
 	
 -->	
@@ -80,13 +79,16 @@
 		<p>A tool to help you figure out how to price your listings on Etsy.</p>
 		<button type="button" id="open-qc" aria-controls="quick-calculator">Quick Calculator</button>
 	</header>
-	<main aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebPage">
-		<div class="sticky-header">
+	<main itemscope itemtype="https://schema.org/WebPage">
+		<div id="sticky-header">
 			<div class="top">
-				<h2 id="calculator-heading">Your Product Information</h2>
-				<button type="button" id="open-storage" aria-controls="storage">My Products</button>
+				<h2 id="save-product-name" contenteditable="true" role="textbox" aria-label="Edit product setup name" spellcheck="false" data-placeholder="Your Product Information"></h2>
+				<button type="button" id="save-setup-btn" aria-controls="storage-list" aria-label="Save product setup"><img src="img/save-file.svg" alt="save icon" /></button>
+				<button type="button" id="open-storage" aria-controls="storage" aria-label="My product setups"><img src="img/folder.svg" alt="folder icon" /></button>
 			</div>
-			
+			<div id="header-notices">
+				
+			</div>
 		</div>
 		<div class="wrap">
 			<button type="button" id="clear-form-btn">Clear All Inputs</button>
@@ -137,12 +139,6 @@
 				</div>
 			</fieldset>
 			
-			<!--
-			<section itemscope itemtype="https://schema.org/WebPageElement" aria-label="Product Value">
-				
-				<p style="margin-bottom: 0;">Your total product value including labor, material, and expenses.</p>
-			</section>
-			-->
 			<fieldset>
 				<legend class="h3">Etsy Base Fee Calculations</legend><div class="clearfix"></div>
 				<p>These have an impact on the overall fee totals, but these actual amounts will vary based on individual order.</p>
@@ -206,9 +202,6 @@
 		</form>
 		
 		<aside aria-labelledby="totals-heading" itemscope itemtype="https://schema.org/WebPageElement">
-			<section>
-				
-			</section>
 			
 			
 			
@@ -252,38 +245,34 @@
 	</main>
 	
 	<form id="quick-calculator" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
-				<button type="button" id="close-qc" aria-label="Close quick calculator modal">×</button>
-				<fieldset>
-					<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
-					<p>Enter a listing price to see an estimated return.</p>
-					<div>
-						<label>Listing Price: <span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></label>
-					</div>
-					<div class="total-line">
-						<label for="qc-return">Estimated Return: $</label>
-						<output id="qc-return" class="amount-display" role="status" aria-live="polite">0.00</output>
-						<p>This will vary based on taxes, shipping, and fees.<br/>For a more robust calculation use the full tool.</p>
-					</div>
-				</fieldset>
-			</form>
-	
-	<form id="storage" aria-labelledby="saved-setups-heading" itemscope itemtype="https://schema.org/WebApplication">
-		<button type="button" id="close-storage" aria-label="Close saved product setups modal">×</button>
+		<button type="button" id="close-qc" aria-label="Close quick calculator modal">×</button>
 		<fieldset>
-			<legend id="saved-setups-heading" class="h2">Saved Product Setups</legend><div class="clearfix"></div>
-			<div id="storage-save-field">
-				<label for="save-product-name" class="sr-only">Setup Name</label>
-				<input type="text" id="save-product-name" name="save-product-name" placeholder="Product Setup Name">
-				<button type="button" id="save-setup-btn" aria-controls="storage-list">Save Setup</button>
+			<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
+			<p>Enter a listing price to see an estimated return.</p>
+			<div>
+				<label>Listing Price: <span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></label>
 			</div>
-			<ul id="storage-list" aria-label="Saved product setups list"></ul>
+			<div class="total-line">
+				<label for="qc-return">Estimated Return: $</label>
+				<output id="qc-return" class="amount-display" role="status" aria-live="polite">0.00</output>
+				<p>This will vary based on taxes, shipping, and fees.<br/>For a more robust calculation use the full tool.</p>
+			</div>
 		</fieldset>
 	</form>
+	
+	<section id="storage">
+		<button type="button" id="close-storage" aria-label="Close saved product setups modal">×</button>
+		<div class="modal-body">
+			<h2>Saved Product Setups</h2>
+			<ul id="storage-list" aria-label="Saved product setups list" tabindex="-1"></ul>
+		</div>
+	</section>
+	
 	
 	
 	
 	<footer itemscope itemtype="https://schema.org/CreativeWork">
-		<small>*I am not a tax professional, and this site can not be used as tax advice.*</small>
+		<small>*I am not a tax professional, and this site can not be used for legal advice.*</small>
 		<br/>
 		<small>*This site is not sponsored or endorsed by Etsy in any way.*</small>
 		<p>© 2025 Justin Ludwig <a href="https://github.com/jluxeg/etsy-listing-price-calculator" target="_blank">Github Repo</a></p>
