@@ -9,18 +9,11 @@
 
 
 /*
-	//todo: final check mobile styling
-	//todo: setup tablet styling
-	//todo: setup desktop styling
 	//todo: update text to em & rem
-	//todo: check formatting
-	//todo: where does quick calculator go?
-	//todo: clean up inline styles
+	//todo: double check device and browser testing
+	//todo: refactor
+	//todo: consider colors, mostly for buttons
 	
-	//todo: i want tool-tips to be in sticky section header
-	//todo: make fee breakdown tool-tip into a more-info
-	//todo: i think sections should be able to collapse
-	//todo: sticky legends need tops adjusted based on sticky header height
 */
 
 * {
@@ -36,6 +29,16 @@ body {
 body.overflow {
 	overflow: hidden;
 }
+body.overflow::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: 2;
+	top: 0;
+	left: 0;
+	background: #eaeaea;
+	opacity: .9;
+}
 h1 {
 	font-weight: 600;
 	/*font-size: 5vw;*/
@@ -46,7 +49,7 @@ h2, h3, .h2, .h3 {
 	margin-top: 0;
 }
 h2 {
-	font-size: clamp(.5em, 4vw, 1.75em);
+	font-size: clamp(.5em, 4vw, 1.5em);
 }
 .h2 {
 	font-size: 24px;
@@ -91,14 +94,13 @@ main {
 	padding: 0;
 	position: relative;
 }
-aside {
-	display: none;
-}
+
 fieldset, .modal-body {
 	background: #fff;
 	border: 1px solid #0e0e0e2e;
 	border-radius: 12px;
 	padding: 30px;
+	padding: 5dvw;
 	margin-bottom: 20px;
 	position: relative;
 	margin-left: 0;
@@ -130,7 +132,7 @@ legend::before {
 	position: absolute;
 	top: 0;
 	right: 100%;
-	width: 30px;
+	width: 5dvw;
 	background: #fff;
 	height: 100%;
 }
@@ -140,9 +142,26 @@ legend::after {
 	position: absolute;
 	top: 0;
 	left: 100%;
-	width: 30px;
+	width: 5dvw;
 	background: #fff;
 	height: 100%;
+}
+legend.collapse-toggle::before {
+	content: '▲';
+	display: flex;
+	justify-content: end;
+	align-items: center;
+	font-size: .8em;
+}
+.closed legend.collapse-toggle::before {
+	content: '▼';
+}
+.collapsible {
+	height: auto;
+}
+.closed .collapsible {
+	height: 0;
+	overflow: hidden;
 }
 .clearfix + p {
 	margin-top: 0px;
@@ -228,6 +247,11 @@ input[type="radio"] {
 	grid-row: 1/2;
 	grid-column: 1/4;
 }
+
+.form-line-items li .name input {
+	width: 100%;
+}
+
 .form-line-items li .quantifier {
 	grid-row: 2/3;
 	grid-column: 1/3;
@@ -235,12 +259,19 @@ input[type="radio"] {
 	grid-template-columns: auto;
 	grid-auto-rows: auto auto;
 }
+.form-line-items li .quantifier input {
+	width: 39dvw;
+}
 .form-line-items li .amount {
 	grid-row: 2/3;
 	grid-column: 3/5;
 	display: grid;
 	grid-template-columns: auto;
 	grid-auto-rows: auto auto;
+	justify-self: end;
+}
+.form-line-items li .amount input {
+	width: 39dvw;
 }
 .form-line-items li .sub {
 	grid-row: 3/4;
@@ -306,10 +337,10 @@ input[type="radio"] {
 }
 .wrap {
 	width: 90dvw;
-	margin: 0 auto;
+	margin: 0 auto 20px;
 }
 .flex-wrap {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 }
 .hidden {
@@ -318,6 +349,9 @@ input[type="radio"] {
 .warning {
 	color: red;
 	width: 100%;
+}
+.success {
+	color: green;
 }
 #sticky-header {
 	position: sticky;
@@ -331,13 +365,11 @@ input[type="radio"] {
 	padding: 15px 20px;
 }
 #save-product-name {
-	width: 100%;
+	width: calc(100% - 112px);
 	border: 1px solid #949494;
 	border-radius: 8px;
 	padding: 8px 12px;
 	box-shadow: 0px 1px 4px 0px inset #0e0e0e17;
-	white-space: nowrap;
-	overflow-wrap: break-word;
 }
 #save-product-name:empty:before {
 	content: attr(data-placeholder);
@@ -374,8 +406,18 @@ input[type="radio"] {
 	padding: 15px 20px;
 }
 
+.sticky-footer p {
+	margin-bottom: 0;
+}
+
+.sticky-footer .calculations {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 #listing-price-calculator {
-	margin-top: 20px;
+	
 }
 
 #estimates-toggle {
@@ -495,23 +537,15 @@ input[type="radio"] {
 #quick-calculator {
 	display: none;
 	position: fixed;
-	top: 50dvh;
-	left: 5dvw;
+	top: 50%;
+	left: 50%;
 	width: 90dvw;
+	max-width: 370px;
 	height: auto;
 	z-index: 10;
-	margin-top: -50%;
+	transform: translate(-50%, -50%);
 }
-#quick-calculator::before {
-	content: '';
-	position: fixed;
-	width: 100dvw;
-	height: 100dvh;
-	top: 0;
-	left: 0;
-	background: #eaeaea;
-	opacity: .9;
-}
+
 #quick-calculator.open {
 	display: block;
 }
@@ -529,22 +563,19 @@ input[type="radio"] {
 #storage {
 	display: none;
 	position: fixed;
-	top: 5dvh;
-	left: 5dvw;
+	top: 50%;
+	left: 50%;
 	width: 90dvw;
+	max-width: 500px;
 	height: 90dvh;
 	z-index: 10;
+	transform: translate(-50%, -50%);
 }
-
-#storage::before {
-	content: '';
-	position: absolute;
-	width: 100dvw;
-	height: 100dvh;
-	top: -5dvh;
-	left: -5dvw;
-	background: #eaeaea;
-	opacity: .9;
+#storage .modal-body {
+	padding-top: 30px;
+}
+#storage h2 {
+	margin-bottom: 0;
 }
 
 #storage.open {
@@ -599,11 +630,36 @@ input[type="radio"] {
 	/*h1 {
 		font-size: 2em;
 	}*/
+	
+	main {
+		padding: 0 20px;
+	}
+	
+	#sticky-header {
+		margin-left: -20px;
+		margin-right: -20px;
+	}
+	.wrap {
+		width: 100%;
+	}
+	.sticky-footer {
+		margin-left: -20px;
+		margin-right: -20px;
+	}
+	fieldset, .modal-body {
+		padding: 10px 30px 30px;
+	}
 	fieldset fieldset {
 		width: auto;
 	}
 	input[type="text"] {
-		width: 250px;
+		/*width: 250px;*/
+	}
+	legend.collapse-toggle::before {
+		justify-content: center;
+	}
+	legend::before, legend::after {
+		width: 20px;
 	}
 	.tool-tip {
 		position: absolute;
@@ -614,6 +670,9 @@ input[type="radio"] {
 		align-items: flex-end;
 		max-width: calc(100% - 4px);
 		margin: 0;
+	}
+	.tool-tip.open {
+		z-index: 1;
 	}
 	.tool-tip-toggle {
 		text-align: right;
@@ -628,5 +687,93 @@ input[type="radio"] {
 	}
 	.add-line-item-btn {
 		width: auto;
+	}
+	
+	.med-one-line {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.med-one-line .one-line-input {
+		margin-top: 0;
+		gap: 20px;
+	}
+}
+
+@media (min-width:1024px){
+	.form-line-items li {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+	}
+	.form-line-items li .name {
+		align-self: end;
+		width: 38%
+	}
+	.form-line-items li .name input {
+		min-width: 250px;
+	}
+	
+	.form-line-items li .quantifier {
+		display: block;
+	}
+	.form-line-items li .quantifier input {
+		width: 120px;
+	}
+	.form-line-items li .amount {
+		display: block;
+	}
+	.form-line-items li .amount input {
+		width: 120px;
+	}
+}
+@media (min-width:1200px){
+	main {
+		display: grid;
+		grid-template-columns: auto 395px;
+		grid-template-rows: auto auto auto;
+		grid-column-gap: 20px;
+	}
+	#sticky-header {
+		grid-column: 1/3;
+		grid-row: 1/2;
+	}
+	.wrap {
+		grid-column: 1/3;
+		grid-row: 2/3;
+	}
+	#listing-price-calculator {
+		grid-column: 1/2;
+		grid-row: 3/4;
+	}
+	.sticky-footer {
+		grid-column: 2/3;
+		grid-row: 3/4;
+		margin: 0;
+		bottom: unset;
+		height: fit-content;
+		border: 1px solid #0e0e0e2e;
+		border-radius: 12px;
+		top: 79px;
+	}
+	#estimates {
+		display: block;
+	}
+	#estimates-toggle {
+		display: none;
+	}
+}
+
+@media (min-width:1400px){
+	main {
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+	#sticky-header {
+		margin-left: calc(680px - 50dvw);
+		margin-right: calc(680px - 50dvw);
+		padding-left: calc(50dvw - 680px);
+		padding-right: calc(50dvw - 680px);
 	}
 }

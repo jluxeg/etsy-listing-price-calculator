@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Base mobile styling in place
+- Final styling like 99% in place
+- Made the header the save name field for better mobile experience
 
 ### Fixed
 

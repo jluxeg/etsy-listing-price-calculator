@@ -8,11 +8,11 @@
 	without explicit permission from the author.
 -->
 <!--
-	//todo: favicon and social images
+	//todo: social images
 	//todo: fill out readme
 	//todo: once ready host on github pages
 
-	
+	//todo: final clean up
 	
 -->	
 <html lang="en">
@@ -39,13 +39,11 @@
 	<meta name="twitter:description" content="Easily calculate your Etsy listing prices including materials, labor, fees, taxes, and profits.">
 	<meta name="twitter:image" content="[todo]">
 	
-	<!--todo
-	<link rel="icon" href="/favicon.ico" type="image/x-icon">
-	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-	-->
+	<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+	<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+	<link rel="shortcut icon" href="favicon.ico" />
+	<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+	<link rel="manifest" href="site.webmanifest" />
 	
 	<script type="application/ld+json">
 	{
@@ -95,52 +93,56 @@
 		</div>
 		<form id="listing-price-calculator" tabindex="-1" aria-labelledby="calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
 			<fieldset id="expenses">
-				<legend class="h3">Materials & Expenses</legend><div class="clearfix"></div>
-				<p>Add the materials used to create your product, as well as things like packaging materials since those costs can add up.</p>
-				<ul id="expenses-list" class="form-line-items" aria-live="polite" aria-label="Material and expense items list"></ul>
-				<button type="button" id="add-expense-btn" class="add-line-item-btn" aria-controls="expenses-list">Add a Material or Expense</button>
+				<legend class="h3 sticky-top-offset collapse-toggle">Materials & Expenses</legend><div class="clearfix"></div>
+				<div class="collapsible">
+					<p>Add the materials used to create your product, as well as things like packaging materials since those costs can add up.</p>
+					<ul id="expenses-list" class="form-line-items" aria-live="polite" aria-label="Material and expense items list"></ul>
+					<button type="button" id="add-expense-btn" class="add-line-item-btn" aria-controls="expenses-list">Add a Material or Expense</button>
+				</div>
 				<div class="total-line">
-					<label for="expenses-total">Total Expenses: $</label>
-					<output id="expenses-total" name="expenses-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					
+					<label>Total Expenses: <span class="flex-wrap">$<output id="expenses-total" name="expenses-total" class="amount-display" role="status" aria-live="polite">0.00</output></span></label>
 				</div>
 			</fieldset>
 			
 			<fieldset id="labor">
-				<legend class="h3">Labor</legend><div class="clearfix"></div>
-				<p>This will make up your net profit, you may also consider adding things like packaging time and admin time.<br/>You can also add flat profits you'd like to get for an item if labor doesn't really apply.</p>
-				<div id="minute-breakdowns" class="tool-tip">
-					<button type="button" class="tool-tip-toggle" aria-controls="minute-breakdowns">Minute to decimal hour breakdowns</button>
-					<div class="tool-tip-body" aria-live="polite">
-						<ul class="p">
-							<li>05 minutes = .08</li>
-							<li>10 minutes = .17</li>
-							<li>15 minutes = .25</li>
-							<li>20 minutes = .33</li>
-							<li>25 minutes = .45</li>
-							<li>30 minutes = .50</li>
-							<li>35 minutes = .58</li>
-							<li>40 minutes = .64</li>
-							<li>45 minutes = .75</li>
-							<li>50 minutes = .83</li>
-							<li>55 minutes = .92</li>
-						</ul>
+				<legend class="h3 sticky-top-offset collapse-toggle">Labor</legend><div class="clearfix"></div>
+				
+				<div class="collapsible">
+					<p>This will make up your net profit, you may also consider adding things like packaging time and admin time.<br/>You can also add flat profits you'd like to get for an item if labor doesn't really apply.</p>
+					<div id="minute-breakdowns" class="tool-tip">
+						<button type="button" class="tool-tip-toggle" aria-controls="minute-breakdowns">Minute to decimal hour breakdowns</button>
+						<div class="tool-tip-body" aria-live="polite">
+							<ul class="p">
+								<li>05 minutes = .08</li>
+								<li>10 minutes = .17</li>
+								<li>15 minutes = .25</li>
+								<li>20 minutes = .33</li>
+								<li>25 minutes = .45</li>
+								<li>30 minutes = .50</li>
+								<li>35 minutes = .58</li>
+								<li>40 minutes = .64</li>
+								<li>45 minutes = .75</li>
+								<li>50 minutes = .83</li>
+								<li>55 minutes = .92</li>
+							</ul>
+						</div>
 					</div>
+					<ul id="labor-list" class="form-line-items" aria-live="polite" aria-label="Labor items list"></ul>
+					<button type="button" id="add-labor-btn" class="add-line-item-btn" aria-controls="labor-list">Add Labor Type</button>
 				</div>
-				<ul id="labor-list" class="form-line-items" aria-live="polite" aria-label="Labor items list"></ul>
-				<button type="button" id="add-labor-btn" class="add-line-item-btn" aria-controls="labor-list">Add Labor Type</button>
 				<div class="total-line">
 					<div>
 						<label>Total Labor Value: <span class="flex-wrap">$<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output></span></label>
 					</div>
 					<div>
-						<label for="labor-hours-total">Total Labor Hours: </label>
-						<output id="labor-hours-total" name="labor-hours-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+						<label>Total Labor Value: <output id="labor-hours-total" name="labor-hours-total" class="amount-display" role="status" aria-live="polite">0.00</output></label>
 					</div>
 				</div>
 			</fieldset>
 			
 			<fieldset>
-				<legend class="h3">Etsy Base Fee Calculations</legend><div class="clearfix"></div>
+				<legend class="h3 sticky-top-offset">Etsy Base Fee Calculations</legend><div class="clearfix"></div>
 				<p>These have an impact on the overall fee totals, but these actual amounts will vary based on individual order.</p>
 				<div id="fee-breakdowns" class="tool-tip">
 					<button type="button" class="tool-tip-toggle" aria-controls="fee-breakdowns">Etsy seller's fees breakdown</button>
@@ -157,12 +159,11 @@
 				
 				<label class="one-line-input"><span>Shipping Label Estimate: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00"></span></label>
 				<label class="one-line-input"><span>Sales Tax Estimate: </span><span><input type="number" class="percent" id="sales-tax" name="sales-tax" step="0.01" value="7.52" min="0" aria-describedby="sales-tax-note"><span class="input-unit">%</span></span></label>
-				<br/>
 				<small id="sales-tax-note">(While this varies state to state, the national average is 7.52%.)</small>
 			</fieldset>
 			
 			<fieldset>
-				<legend class="h3">Etsy Offsite Ad Fee Rate</legend><div class="clearfix"></div>
+				<legend class="h3 sticky-top-offset">Etsy Offsite Ad Fee Rate</legend><div class="clearfix"></div>
 				<p>need a quick line here</p>
 				<div id="offsite-ad-info" class="more-info">
 					<button type="button" class="more-info-toggle" aria-controls="offsite-ad-info">Offsite Ad Rate Info</button>
@@ -182,31 +183,34 @@
 			</fieldset>
 			
 			<fieldset>
-				<legend class="h3">Income Tax</legend><div class="clearfix"></div>
+				<legend class="h3 sticky-top-offset">Income Tax</legend><div class="clearfix"></div>
 				<p>need a quick line here</p>
 				<div id="income-tax-info" class="more-info">
 					<button type="button" class="more-info-toggle" aria-controls="income-tax-info">Income Tax Info</button>
 					<div class="more-info-body" aria-live="polite">
-						<p>They say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.<br/>You can choose to ignore this in the calculation, view what you should set aside from your current amount, or factor this into your listing price to take home your net amount.</p>
+						<p>They say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.</p>
+						<p>You can choose to ignore this in the calculation, view what you should set aside from your current amount, or factor this into your listing price to take home your net amount.</p>
 					</div>
 				</div>
 				
-				<fieldset>
-					<legend class="sr-only">Income Tax Calculation</legend>
-					<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
-					<label><input type="radio" name="incomeTax" value="view">View</label>
-					<label><input type="radio" name="incomeTax" value="factor">Factor</label>
-				</fieldset>
-				<label class="one-line-input"><span>Tax Rate: </span><span><input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00"><span class="input-unit">%</span></span></label>
+				<div class="med-one-line">
+					<fieldset>
+						<legend class="sr-only">Income Tax Calculation</legend>
+						<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
+						<label><input type="radio" name="incomeTax" value="view">View</label>
+						<label><input type="radio" name="incomeTax" value="factor">Factor</label>
+					</fieldset>
+					<label class="one-line-input"><span>Tax Rate: </span><span><input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00"><span class="input-unit">%</span></span></label>
+				</div>
 			</fieldset>
 		</form>
 		
-		<aside aria-labelledby="totals-heading" itemscope itemtype="https://schema.org/WebPageElement">
+		<!--<aside aria-labelledby="totals-heading" itemscope itemtype="https://schema.org/WebPageElement">
 			
 			
 			
 			
-		</aside>
+		</aside>-->
 		<div class="sticky-footer">
 			<div id="estimates">
 				<ul id="estimated-totals">
@@ -235,8 +239,8 @@
 					</div>
 				</div>
 			</div>
-			<p style="margin-bottom: 0;">Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
-			<div style="display: flex; justify-content: space-between; align-items: center;">
+			<p>Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
+			<div class="calculations">
 				<h3 id="totals-heading">Suggested Listing Price: $<output id="listing-price" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
 				<button type="button" id="estimates-toggle" aria-controls="estimates">Fee Estimates</button>
 			</div>
@@ -250,7 +254,7 @@
 			<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
 			<p>Enter a listing price to see an estimated return.</p>
 			<div>
-				<label>Listing Price: <span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></label>
+				<label class="one-line-input">Listing Price: <span><span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></span></label>
 			</div>
 			<div class="total-line">
 				<label for="qc-return">Estimated Return: $</label>

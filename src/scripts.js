@@ -83,7 +83,7 @@ const templates = {
 		</li>`,
 	storageFullWarning: `<p id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</p>`,
 	storageNameWarning: `<p id="storage-name-warning" class="warning" role="alert">Please add a name to save.</p>`,
-	productSetupSaved: `<p id="product-setup-saved" class="success" role="alert">Saved!</p>`
+	productSetupSaved: `<p id="product-setup-saved" class="success" role="alert">Product setup saved!</p>`
 };
 
 // ===============================
@@ -166,7 +166,8 @@ function clearInputs(){
 	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
 	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
 	incomeTaxHandler = 'ignore';
-	document.getElementById('save-product-name').textContent = 'Your Product Information';
+	//document.getElementById('save-product-name').textContent = 'Your Product Information';
+	document.getElementById('save-product-name').textContent = '';
 	updateProductHeading('clear');
 	toggleIncomeTaxHandler();
 	updateTotals();
@@ -645,7 +646,8 @@ function focusTopOfForm(focus = true) {
 //todo: do i need this??
 function updateProductHeading(action, text = ''){
 	const heading = document.getElementById('save-product-name');
-	const defaultValue = 'Your Product Information';
+	//const defaultValue = 'Your Product Information';
+	const defaultValue = '';
 	text = text === '' ? defaultValue : text;
 	
 	switch (action) {
@@ -720,6 +722,16 @@ document.getElementById('close-qc').addEventListener('click', e => {
 	document.getElementById('open-qc').focus();
 });
 
+document.body.addEventListener('click', e => {
+	if(e.target.classList.contains('overflow')){
+		//todo: make this more specific
+		document.body.classList.remove('overflow');
+		document.getElementById('quick-calculator').classList.remove('open');
+		document.getElementById('storage').classList.remove('open');
+		
+	}
+});
+
 
 //save name field
 const editable = document.getElementById('save-product-name');
@@ -737,4 +749,47 @@ editable.addEventListener('input', () => {
 	if (!editable.textContent.trim()) {
 		editable.innerHTML = '';
 	}
+});
+
+function recalcStickyHeaderHeight(){
+	const header = document.getElementById('sticky-header');
+	const adjustments = document.querySelectorAll('.sticky-top-offset');
+	const height = header.offsetHeight;
+	
+	adjustments.forEach(el => {
+		el.style.top = `${height}px`;
+	});
+}
+
+//catches any change to sticky header height
+const observer = new ResizeObserver(recalcStickyHeaderHeight);
+observer.observe(document.getElementById('sticky-header'));
+
+//catches veiwport resizing
+window.addEventListener('resize', recalcStickyHeaderHeight);
+
+//catches initial load
+recalcStickyHeaderHeight();
+
+//differnt scroll thing, might like this better than the other, todo: check other scroll behaviors
+function scrollToElementWithOffset(el, offset = 100) {
+	const rect = el.getBoundingClientRect();
+	const absoluteTop = rect.top + window.scrollY;
+	const targetY = absoluteTop - offset;
+	
+	window.scrollTo({
+		top: targetY,
+		behavior: 'smooth'
+	});
+}
+
+//collapsing fieldsets
+document.querySelectorAll('.collapse-toggle').forEach(btn => {
+	btn.addEventListener('click', e => {
+		const parent = e.target.closest('fieldset');
+		parent.classList.toggle('closed');
+		
+		//parent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		scrollToElementWithOffset(parent, 150);
+	});
 });
