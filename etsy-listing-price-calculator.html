@@ -136,7 +136,7 @@
 						<label>Total Labor Value: <span class="flex-wrap">$<output id="labor-total" name="labor-total" class="amount-display" role="status" aria-live="polite">0.00</output></span></label>
 					</div>
 					<div>
-						<label>Total Labor Value: <output id="labor-hours-total" name="labor-hours-total" class="amount-display" role="status" aria-live="polite">0.00</output></label>
+						<label>Total Labor Hours: <output id="labor-hours-total" name="labor-hours-total" class="amount-display" role="status" aria-live="polite">0.00</output></label>
 					</div>
 				</div>
 			</fieldset>
@@ -157,8 +157,8 @@
 					</div>
 				</div>
 				
-				<label class="one-line-input"><span>Shipping Label Estimate: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00"></span></label>
-				<label class="one-line-input"><span>Sales Tax Estimate: </span><span><input type="number" class="percent" id="sales-tax" name="sales-tax" step="0.01" value="7.52" min="0" aria-describedby="sales-tax-note"><span class="input-unit">%</span></span></label>
+				<label class="one-line-input"><span>Shipping Label Estimate: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" id="shipping-label" name="shipping-label" step="0.01" min="0" placeholder="0.00" autocomplete="off"></span></label>
+				<label class="one-line-input"><span>Sales Tax Estimate: </span><span><input type="number" class="percent" id="sales-tax" name="sales-tax" step="0.01" value="7.52" min="0" aria-describedby="sales-tax-note" autocomplete="off"><span class="input-unit">%</span></span></label>
 				<small id="sales-tax-note">(While this varies state to state, the national average is 7.52%.)</small>
 			</fieldset>
 			
@@ -176,9 +176,9 @@
 				
 				<fieldset>
 					<legend class="sr-only">Ad Rate</legend>
-					<label><input type="radio" name="offsiteAdFee" value="0" checked>0%</label>
-					<label><input type="radio" name="offsiteAdFee" value="12">12%</label>
-					<label><input type="radio" name="offsiteAdFee" value="15">15%</label>
+					<label class="radio-label"><input type="radio" name="offsiteAdFee" value="0" autocomplete="off" checked>0%</label>
+					<label class="radio-label"><input type="radio" name="offsiteAdFee" value="12" autocomplete="off">12%</label>
+					<label class="radio-label"><input type="radio" name="offsiteAdFee" value="15" autocomplete="off">15%</label>
 				</fieldset>
 			</fieldset>
 			
@@ -196,11 +196,11 @@
 				<div class="med-one-line">
 					<fieldset>
 						<legend class="sr-only">Income Tax Calculation</legend>
-						<label><input type="radio" name="incomeTax" value="ignore" checked>Ignore</label>
-						<label><input type="radio" name="incomeTax" value="view">View</label>
-						<label><input type="radio" name="incomeTax" value="factor">Factor</label>
+						<label class="radio-label"><input type="radio" name="incomeTax" value="ignore" autocomplete="off" checked>Ignore</label>
+						<label class="radio-label"><input type="radio" name="incomeTax" value="view" autocomplete="off">View</label>
+						<label class="radio-label"><input type="radio" name="incomeTax" value="factor" autocomplete="off">Factor</label>
 					</fieldset>
-					<label class="one-line-input"><span>Tax Rate: </span><span><input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00"><span class="input-unit">%</span></span></label>
+					<label class="one-line-input"><span>Tax Rate: </span><span><input type="number" class="percent" id="income-tax-rate" step="0.01" min="0" value="30.00" autocomplete="off"><span class="input-unit">%</span></span></label>
 				</div>
 			</fieldset>
 		</form>
@@ -254,7 +254,7 @@
 			<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
 			<p>Enter a listing price to see an estimated return.</p>
 			<div>
-				<label class="one-line-input">Listing Price: <span><span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00"></span></label>
+				<label class="one-line-input">Listing Price: <span><span class="input-unit">$</span><input type="number" id="qc-listing-price" name="qc-listing-price" step="0.01" min="0" placeholder="0.00" autocomplete="off"></span></label>
 			</div>
 			<div class="total-line">
 				<label for="qc-return">Estimated Return: $</label>
@@ -268,6 +268,7 @@
 		<button type="button" id="close-storage" aria-label="Close saved product setups modal">×</button>
 		<div class="modal-body">
 			<h2>Saved Product Setups</h2>
+			<p id="nothing-saved-notice">Nothing saved yet.</p>
 			<ul id="storage-list" aria-label="Saved product setups list" tabindex="-1"></ul>
 		</div>
 	</section>

@@ -7,7 +7,6 @@
 	without explicit permission from the author.
 */
 
-//todo: responsive js once layout is in place
 //todo: refactor layout js
 
 
@@ -83,7 +82,8 @@ const templates = {
 		</li>`,
 	storageFullWarning: `<p id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</p>`,
 	storageNameWarning: `<p id="storage-name-warning" class="warning" role="alert">Please add a name to save.</p>`,
-	productSetupSaved: `<p id="product-setup-saved" class="success" role="alert">Product setup saved!</p>`
+	productSetupSaved: `<p id="product-setup-saved" class="success" role="alert">Product setup saved!</p>`,
+	productSetupUpdated: `<p id="product-setup-saved" class="success" role="alert">Product setup updated!</p>`
 };
 
 // ===============================
@@ -367,7 +367,12 @@ function calculateListingPrice(){
 	}
 	
 	const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
-	let net = incomeTaxHandler === 'factor' ? totals.valueTotal / (1 - (incomeTaxRate || 0)) : totals.valueTotal;
+	let net;
+	if(incomeTaxHandler === 'factor'){
+		net = (totals.laborTotal / (1 - (incomeTaxRate || 0))) + totals.expensesTotal;
+	} else {
+		net = totals.valueTotal;
+	}
 	const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
 	const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0; //formats from input 7.52 -> .0752
 	
@@ -519,14 +524,16 @@ function saveProductSetup(){
 	let listItem = document.querySelector('#storage-list [data-key="'+keyName+'"]');
 	if(listItem){
 		storageList.prepend(listItem); //want updated save files to go to the top of the list
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupUpdated);
 	} else {
 		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupSaved);
 	}
 	
 	document.getElementById('save-setup-btn').blur();
 	
 	updateProductHeading('save', setup.name);
-	document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupSaved);
+	
 	setTimeout(() => document.getElementById('product-setup-saved').remove(), 1000);
 	
 	listItem.classList.add("saved");
@@ -536,11 +543,15 @@ function saveProductSetup(){
 
 //creates the list of saved product setups
 function loadSavedSetups(){
-	Object.keys(localStorage)
+	const items = Object.keys(localStorage)
 		.filter(k => k.startsWith(elpcPrefix))
 		.map(k => ({key:k, data:JSON.parse(localStorage.getItem(k))}))
-		.sort((a,b) => b.data.timeStamp - a.data.timeStamp)
-		.forEach(item => addItem(storageList, {name: item.data.name, key: item.key}));
+		.sort((a,b) => b.data.timeStamp - a.data.timeStamp);
+	if (items.length > 0) {
+		const placeholder = document.querySelector('#nothing-saved-notice');
+		if (placeholder) placeholder.remove();
+	}
+	items.forEach(item => addItem(storageList, {name: item.data.name, key: item.key}));
 }
 
 function getSingleSetup(key){
@@ -611,7 +622,7 @@ storageList.addEventListener('click', e => {
 	}
 	
 	if(e.target.classList.contains('confirm-delete-btn')) {
-		updateProductHeading('delete', setup.name);
+		//updateProductHeading('delete', setup.name);
 		localStorage.removeItem(key);
 		li.remove();
 	}
@@ -639,7 +650,7 @@ function focusTopOfForm(focus = true) {
 /* rules for updateProductHeading()
 	on load: replace current heading with save name
 	on append: do nothing
-	on delete: if this one is currently open, change heading to default, empty save name field; else do nothing
+	on delete: do nothing
 	on save: replace current heading with cleaned save name
 	on clear: replace current heading with default
 */
@@ -653,12 +664,6 @@ function updateProductHeading(action, text = ''){
 	switch (action) {
 		case "load":
 			heading.textContent = text;
-			break;
-		
-		case "delete":
-			if(heading.textContent == text){
-				heading.textContent = defaultValue;
-			}
 			break;
 		
 		case "save":

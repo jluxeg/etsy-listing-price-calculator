@@ -10,9 +10,10 @@
 
 /*
 	//todo: update text to em & rem
-	//todo: double check device and browser testing
 	//todo: refactor
 	//todo: consider colors, mostly for buttons
+	
+	//todo: (for later) could probably figure out layout for horizontal surface duo users
 	
 */
 
@@ -50,6 +51,11 @@ h2, h3, .h2, .h3 {
 }
 h2 {
 	font-size: clamp(.5em, 4vw, 1.5em);
+}
+@media (orientation: landscape) {
+	h2 {
+		font-size: clamp(.5em, 4vh, 1.5em);
+	}
 }
 .h2 {
 	font-size: 24px;
@@ -118,6 +124,12 @@ fieldset fieldset {
 fieldset {
 	padding-top: 10px;
 }
+@supports (-moz-appearance: none) {
+	#expenses, #labor {
+		display: flex;
+		flex-direction: column;
+	}
+}
 legend {
 	float: left;
 	position: sticky;
@@ -166,6 +178,7 @@ legend.collapse-toggle::before {
 .clearfix + p {
 	margin-top: 0px;
 }
+
 .clearfix::after {
 	content: '';
 	display: table;
@@ -218,6 +231,10 @@ input[type="number"].percent {
 input[type="radio"] {
 	margin-right: 5px;
 }
+.radio-label {
+	display: inline-flex;
+	align-items: center;
+}
 .one-line-input {
 	display: flex;
 	justify-content: space-between;
@@ -236,6 +253,7 @@ input[type="radio"] {
 	grid-template-columns: 1fr 1fr 1fr .5fr;
 	padding: 20px;
 	grid-row-gap: 10px;
+	
 }
 .form-line-items li + li {
 	border-top: 1px solid #0e0e0e2e;
@@ -670,6 +688,8 @@ input[type="radio"] {
 		align-items: flex-end;
 		max-width: calc(100% - 4px);
 		margin: 0;
+		transform: translateZ(0);
+		will-change: transform;
 	}
 	.tool-tip.open {
 		z-index: 1;
@@ -700,7 +720,7 @@ input[type="radio"] {
 	}
 }
 
-@media (min-width:1024px){
+@media (min-width:912px){
 	.form-line-items li {
 		display: flex;
 		align-items: center;
