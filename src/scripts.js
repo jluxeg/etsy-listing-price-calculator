@@ -7,7 +7,6 @@
 	without explicit permission from the author.
 */
 
-//todo: refactor layout js
 
 
 // ===============================
@@ -51,9 +50,23 @@ const templates = {
 				<span class="sr-only">Material or Expense Name</span>
 				<input type="text" placeholder="Material or Expense" value="{{name}}">
 			</label>
-			<label class="quantifier"><span>Qty: </span><span><input type="number" class="expense-qty" step="0.01" min="0" placeholder="0.00" value="{{qty}}"></span></label>
-			<label class="amount"><span>Cost: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" class="expense-cost" step="0.01" min="0" placeholder="0.00" value="{{cost}}"></span></label>
-			<span class="sub"><span>Subtotal: </span><span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span></span>
+			<label class="quantifier">
+				<span>Qty: </span>
+				<span>
+					<input type="number" class="expense-qty" step="0.01" min="0" placeholder="0.00" value="{{qty}}">
+				</span>
+			</label>
+			<label class="amount">
+				<span>Cost: </span>
+				<span class="flex-wrap">
+					<span class="input-unit">$</span>
+					<input type="number" class="expense-cost" step="0.01" min="0" placeholder="0.00" value="{{cost}}">
+				</span>
+			</label>
+			<span class="sub">
+				<span>Subtotal: </span>
+				<span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
+			</span>
 			<button type="button" class="line-item-remover" aria-label="Remove this line item">×</button>
 		</li>`,
 	laborList: `<li>
@@ -61,9 +74,23 @@ const templates = {
 				<span class="sr-only">Labor Type Name</span>
 				<input type="text" placeholder="Labor Type" value="{{name}}">
 			</label>
-			<label class="quantifier"><span>Hours: </span><span><input type="number" class="labor-hours" step="0.01" min="0" placeholder="0.00" value="{{hours}}"></span></label>
-			<label class="amount"><span>Rate: </span><span class="flex-wrap"><span class="input-unit">$</span><input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{rate}}"></span></label>
-			<span class="sub"><span>Subtotal: </span><span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span></span>
+			<label class="quantifier">
+				<span>Hours: </span>
+				<span>
+					<input type="number" class="labor-hours" step="0.01" min="0" placeholder="0.00" value="{{hours}}">
+				</span>
+			</label>
+			<label class="amount">
+				<span>Rate: </span>
+				<span class="flex-wrap">
+					<span class="input-unit">$</span>
+					<input type="number" class="labor-rate" step="0.01" min="0" placeholder="0.00" value="{{rate}}">
+				</span>
+			</label>
+			<span class="sub">
+				<span>Subtotal: </span>
+				<span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
+			</span>
 			<button type="button" class="line-item-remover" aria-label="Remove this labor entry">×</button>
 		</li>`,
 	storageList: `<li class="storage-item" data-key="{{key}}">
@@ -94,7 +121,8 @@ const templates = {
 	totals object reference: these are used to display ouputs on the page
 	{
 		expensesTotal
-		laborTotal
+		laborTotal //the rates
+		laborHoursTotal //only for display, not calculation
 		valueTotal
 		
 		listingFeeTotal
@@ -104,15 +132,14 @@ const templates = {
 		offsiteAdFeeTotal
 		feesTotal
 		
-		incomeTaxTotal
-		
 		listingPrice
 		
 		taxTotal
 		customerTotal
 		
+		incomeTaxTotal
+		
 		qcReturn //for quick calculator
-		laborHoursTotal //only for display, not calculation
 	}
 */	
 
@@ -166,8 +193,7 @@ function clearInputs(){
 	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
 	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
 	incomeTaxHandler = 'ignore';
-	//document.getElementById('save-product-name').textContent = 'Your Product Information';
-	document.getElementById('save-product-name').textContent = '';
+	
 	updateProductHeading('clear');
 	toggleIncomeTaxHandler();
 	updateTotals();
@@ -316,7 +342,7 @@ function toggleIncomeTaxHandler(){
 	document.getElementById('set-aside-taxes').classList.toggle('hidden', incomeTaxHandler === 'ignore');
 }
 
-//used in calculateListingPrice() //todo: this might be handled better
+//used in calculateListingPrice()
 function calculateIncomeTax(){
 	const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
 	
@@ -409,6 +435,10 @@ function calculateReturn(){
 	totals.qcReturn = qcListingPrice - qcFees;
 }
 
+document.getElementById('open-qc').addEventListener('click', e => {
+	openModal('quick-calculator', 'qc-listing-price');
+});
+
 // ===============================
 // calculation type handler
 // ===============================
@@ -468,7 +498,12 @@ function isStorageSupported(){
 	}
 }
 
-isStorageSupported() ? loadSavedSetups() : document.body.classList.add('no-storage');
+function noStorage(){
+	document.body.classList.add('no-storage');
+	document.getElementById('save-product-name').outerHTML = '<h2 id="save-product-name">Your Product Information</h2>';
+}
+
+isStorageSupported() ? loadSavedSetups() : noStorage();
 
 // ===============================
 // localStorage functions
@@ -516,6 +551,7 @@ function saveProductSetup(){
 	
 	try {
 		localStorage.setItem(keyName, JSON.stringify(setup));
+		hideStorageError();
 	} catch (error){
 		displayStorageError();
 		return false;
@@ -524,6 +560,7 @@ function saveProductSetup(){
 	let listItem = document.querySelector('#storage-list [data-key="'+keyName+'"]');
 	if(listItem){
 		storageList.prepend(listItem); //want updated save files to go to the top of the list
+		listItem.querySelector('.file-name').textContent = saveName; //file names are not case sensative, but if they chage the case show it
 		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupUpdated);
 	} else {
 		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
@@ -532,10 +569,11 @@ function saveProductSetup(){
 	
 	document.getElementById('save-setup-btn').blur();
 	
-	updateProductHeading('save', setup.name);
+	updateProductHeading('save', setup.name); //keep this so that it changes the displayed name to the cleaned version
 	
 	setTimeout(() => document.getElementById('product-setup-saved').remove(), 1000);
 	
+	//keeping this around for now incase i move it back out of the modal again for larger screens
 	listItem.classList.add("saved");
 	setTimeout(() => listItem.classList.remove('saved'), 1000);
 	
@@ -548,8 +586,7 @@ function loadSavedSetups(){
 		.map(k => ({key:k, data:JSON.parse(localStorage.getItem(k))}))
 		.sort((a,b) => b.data.timeStamp - a.data.timeStamp);
 	if (items.length > 0) {
-		const placeholder = document.querySelector('#nothing-saved-notice');
-		if (placeholder) placeholder.remove();
+		document.querySelector('#nothing-saved-notice').remove();
 	}
 	items.forEach(item => addItem(storageList, {name: item.data.name, key: item.key}));
 }
@@ -602,11 +639,7 @@ storageList.addEventListener('click', e => {
 		loadManufacturingCosts(setup);
 		updateTotals();
 		
-		//todo: check about function for this
-		document.body.classList.remove('overflow');
-		document.getElementById('storage').classList.remove('open');
-		document.getElementById('open-storage').focus();
-		
+		closeModal();
 		focusTopOfForm();
 	}
 	
@@ -622,7 +655,6 @@ storageList.addEventListener('click', e => {
 	}
 	
 	if(e.target.classList.contains('confirm-delete-btn')) {
-		//updateProductHeading('delete', setup.name);
 		localStorage.removeItem(key);
 		li.remove();
 	}
@@ -634,16 +666,63 @@ storageList.addEventListener('click', e => {
 });
 
 document.getElementById('save-setup-btn')?.addEventListener('click', saveProductSetup);
+document.getElementById('open-storage').addEventListener('click', e => {
+	openModal('storage', 'storage-list');
+});
+
+// ===============================
+// modal handlers
+// ===============================
+
+function openModal(modal, focusEl){
+	document.body.classList.add('overflow');
+	document.getElementById(modal).classList.add('open');
+	document.getElementById(focusEl).focus();
+}
+
+function closeModal(){
+	const openModal = document.querySelector('.modal.open');
+	const modalCloseBtn = openModal.querySelector('.close-modal');
+	const focusEl = modalCloseBtn.dataset.focusel;
+	
+	document.body.classList.remove('overflow');
+	openModal.classList.remove('open');
+	document.getElementById(focusEl).focus();
+}
+
+document.querySelectorAll('.close-modal').forEach(btn => {
+	btn.addEventListener('click', e => {
+		closeModal();
+	});
+});
+
+document.body.addEventListener('click', e => {
+	if(e.target.classList.contains('overflow')){
+		closeModal();
+	}
+});
 
 // ===============================
 // display adjustments
 // ===============================
 
+//some scrolling behavior help
+function scrollToElementWithOffset(el, offset = 100, behavior = 'smooth') {
+	const rect = el.getBoundingClientRect();
+	const absoluteTop = rect.top + window.scrollY;
+	const targetY = absoluteTop - offset;
+	
+	window.scrollTo({
+		top: targetY,
+		behavior: behavior
+	});
+}
+
 function focusTopOfForm(focus = true) {
 	const form = document.getElementById('listing-price-calculator');
 	if(focus){
 		form?.focus();
-		document.querySelector('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+		scrollToElementWithOffset(document.querySelector('main'), 0, 'auto');
 	}
 }
 
@@ -654,11 +733,9 @@ function focusTopOfForm(focus = true) {
 	on save: replace current heading with cleaned save name
 	on clear: replace current heading with default
 */
-//todo: do i need this??
 function updateProductHeading(action, text = ''){
 	const heading = document.getElementById('save-product-name');
-	//const defaultValue = 'Your Product Information';
-	const defaultValue = '';
+	const defaultValue = document.body.classList.contains('no-storage') ? 'Your Product Information' : '';
 	text = text === '' ? defaultValue : text;
 	
 	switch (action) {
@@ -675,6 +752,46 @@ function updateProductHeading(action, text = ''){
 			break;
 	}
 }
+
+//show the placeholder again if input is removed from save name field
+const editable = document.getElementById('save-product-name');
+editable.addEventListener('input', () => {
+	// remove the <br>'s that get added
+	if (
+		editable.childNodes.length === 1 &&
+		editable.firstChild.nodeName === 'BR'
+	) {
+		editable.innerHTML = '';
+	}
+	
+	//maybe a rogue space is there
+	if (!editable.textContent.trim()) {
+		editable.innerHTML = '';
+	}
+});
+
+//adjust the secondary sticky items based on main sticky header
+function recalcStickyHeaderHeight(){
+	const header = document.getElementById('sticky-header');
+	const adjustments = document.querySelectorAll('.sticky-top-offset');
+	const height = header.offsetHeight;
+	
+	adjustments.forEach(el => {
+		el.style.top = `${height}px`;
+	});
+}
+
+//catches any change to sticky header height
+const observer = new ResizeObserver(recalcStickyHeaderHeight);
+observer.observe(document.getElementById('sticky-header'));
+
+//catches veiwport resizing
+window.addEventListener('resize', recalcStickyHeaderHeight);
+
+//catches initial load
+recalcStickyHeaderHeight();
+
+
 
 // ===============================
 // display interactions
@@ -698,95 +815,9 @@ document.querySelectorAll('.more-info-toggle').forEach(btn => {
 
 //estimates
 document.getElementById('estimates-toggle').addEventListener('click', e => {
-	document.getElementById('estimates-toggle').classList.toggle('open');
+	e.target.classList.toggle('open');
 	document.getElementById('estimates').classList.toggle('open');
 });
-
-//storage
-document.getElementById('open-storage').addEventListener('click', e => {
-	document.body.classList.add('overflow');
-	document.getElementById('storage').classList.add('open');
-	document.getElementById('storage-list').focus();
-});
-document.getElementById('close-storage').addEventListener('click', e => {
-	document.body.classList.remove('overflow');
-	document.getElementById('storage').classList.remove('open');
-	document.getElementById('open-storage').focus();
-});
-
-//quick-calculator
-
-document.getElementById('open-qc').addEventListener('click', e => {
-	document.body.classList.add('overflow');
-	document.getElementById('quick-calculator').classList.add('open');
-	document.getElementById('qc-listing-price').focus();
-});
-document.getElementById('close-qc').addEventListener('click', e => {
-	document.body.classList.remove('overflow');
-	document.getElementById('quick-calculator').classList.remove('open');
-	document.getElementById('open-qc').focus();
-});
-
-document.body.addEventListener('click', e => {
-	if(e.target.classList.contains('overflow')){
-		//todo: make this more specific
-		document.body.classList.remove('overflow');
-		document.getElementById('quick-calculator').classList.remove('open');
-		document.getElementById('storage').classList.remove('open');
-		
-	}
-});
-
-
-//save name field
-const editable = document.getElementById('save-product-name');
-
-editable.addEventListener('input', () => {
-	// remove the <br>'s that get added
-	if (
-		editable.childNodes.length === 1 &&
-		editable.firstChild.nodeName === 'BR'
-	) {
-		editable.innerHTML = '';
-	}
-	
-	//maybe a rogue space is there
-	if (!editable.textContent.trim()) {
-		editable.innerHTML = '';
-	}
-});
-
-function recalcStickyHeaderHeight(){
-	const header = document.getElementById('sticky-header');
-	const adjustments = document.querySelectorAll('.sticky-top-offset');
-	const height = header.offsetHeight;
-	
-	adjustments.forEach(el => {
-		el.style.top = `${height}px`;
-	});
-}
-
-//catches any change to sticky header height
-const observer = new ResizeObserver(recalcStickyHeaderHeight);
-observer.observe(document.getElementById('sticky-header'));
-
-//catches veiwport resizing
-window.addEventListener('resize', recalcStickyHeaderHeight);
-
-//catches initial load
-recalcStickyHeaderHeight();
-
-//differnt scroll thing, might like this better than the other, todo: check other scroll behaviors
-function scrollToElementWithOffset(el, offset = 100) {
-	const rect = el.getBoundingClientRect();
-	const absoluteTop = rect.top + window.scrollY;
-	const targetY = absoluteTop - offset;
-	
-	window.scrollTo({
-		top: targetY,
-		behavior: 'smooth'
-	});
-}
 
 //collapsing fieldsets
 document.querySelectorAll('.collapse-toggle').forEach(btn => {
@@ -794,7 +825,7 @@ document.querySelectorAll('.collapse-toggle').forEach(btn => {
 		const parent = e.target.closest('fieldset');
 		parent.classList.toggle('closed');
 		
-		//parent.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		scrollToElementWithOffset(parent, 150);
+		scrollToElementWithOffset(parent, 150, 'auto');
 	});
 });
+

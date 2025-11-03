@@ -165,6 +165,10 @@ legend.collapse-toggle::before {
 	align-items: center;
 	font-size: .8em;
 }
+.no-storage legend {
+	top: 0 !important;
+}
+
 .closed legend.collapse-toggle::before {
 	content: '▼';
 }
@@ -326,7 +330,7 @@ input[type="radio"] {
 #shipping-label {
 	margin-right: 20px;
 }*/
-.no-storage #storage, .no-storage #open-storage {
+.no-storage #storage, .no-storage #open-storage, .no-storage #save-setup-btn {
 	display: none;
 }
 .storage-full #save-setup-btn {
@@ -382,14 +386,18 @@ input[type="radio"] {
 	border-top: 2px solid #f1641e;
 	padding: 15px 20px;
 }
-#save-product-name {
+
+.no-storage #sticky-header {
+	position: static;
+}
+#save-product-name[contenteditable="true"] {
 	width: calc(100% - 112px);
 	border: 1px solid #949494;
 	border-radius: 8px;
 	padding: 8px 12px;
 	box-shadow: 0px 1px 4px 0px inset #0e0e0e17;
 }
-#save-product-name:empty:before {
+#save-product-name[contenteditable="true"]:empty:before {
 	content: attr(data-placeholder);
 	color: #999;
 	pointer-events: none;

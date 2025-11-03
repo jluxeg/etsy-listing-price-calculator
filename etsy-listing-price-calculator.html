@@ -248,8 +248,8 @@
 		</div>
 	</main>
 	
-	<form id="quick-calculator" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
-		<button type="button" id="close-qc" aria-label="Close quick calculator modal">×</button>
+	<form id="quick-calculator" class="modal" aria-labelledby="quick-calculator-heading" itemscope itemtype="https://schema.org/WebApplication">
+		<button type="button" id="close-qc" class="close-modal" data-focusel="open-qc" aria-label="Close quick calculator modal">×</button>
 		<fieldset>
 			<legend id="quick-calculator-heading" class="h2">Quick Calculator</legend><div class="clearfix"></div>
 			<p>Enter a listing price to see an estimated return.</p>
@@ -264,8 +264,8 @@
 		</fieldset>
 	</form>
 	
-	<section id="storage">
-		<button type="button" id="close-storage" aria-label="Close saved product setups modal">×</button>
+	<section id="storage" class="modal">
+		<button type="button" id="close-storage" class="close-modal" data-focusel="open-storage" aria-label="Close saved product setups modal">×</button>
 		<div class="modal-body">
 			<h2>Saved Product Setups</h2>
 			<p id="nothing-saved-notice">Nothing saved yet.</p>
