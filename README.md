@@ -1,7 +1,7 @@
 # etsy-listing-price-calculator
  a simple to use tool for etsy sellers to help determine what you should price your listings on based on materials, expenses, and labor to figure out the seller's fees.
 
-![device mockups](./img/elpc.jpg)
+![device mockups](./img/elpc-mockup.jpg)
 
 
 todo: now i just got to write this up
