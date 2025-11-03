@@ -8,7 +8,6 @@
 */
 
 
-
 // ===============================
 // utility functions
 // ===============================
@@ -67,7 +66,7 @@ const templates = {
 				<span>Subtotal: </span>
 				<span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
 			</span>
-			<button type="button" class="line-item-remover" aria-label="Remove this line item">×</button>
+			<button type="button" class="line-item-remover btn-warning" aria-label="Remove this line item">×</button>
 		</li>`,
 	laborList: `<li>
 			<label class="name">
@@ -91,19 +90,19 @@ const templates = {
 				<span>Subtotal: </span>
 				<span>$<output class="subtotal" role="status" aria-live="polite">0.00</output></span>
 			</span>
-			<button type="button" class="line-item-remover" aria-label="Remove this labor entry">×</button>
+			<button type="button" class="line-item-remover btn-warning" aria-label="Remove this labor entry">×</button>
 		</li>`,
 	storageList: `<li class="storage-item" data-key="{{key}}">
 			<div class="file-name">{{name}}</div>
 			<div class="file-actions">
 				<div class="btn-grp main-actions">
-					<button type="button" class="load-btn" aria-label="Load saved setup {{name}}">Load</button>
-					<button type="button" class="append-btn" aria-label="Append saved setup {{name}}">Append</button>
-					<button type="button" class="delete-btn" aria-label="Delete saved setup {{name}}">Delete</button>
+					<button type="button" class="load-btn btn-primary" aria-label="Load saved setup {{name}}">Load</button>
+					<button type="button" class="append-btn btn-secondary" aria-label="Append saved setup {{name}}">Append</button>
+					<button type="button" class="delete-btn btn-warning" aria-label="Delete saved setup {{name}}">Delete</button>
 				</div>
 				<div class="btn-grp confirm-actions hidden">
-					<button type="button" class="confirm-delete-btn" aria-label="Confirm delete saved setup {{name}}">Confirm Delete</button>
-					<button type="button" class="cancel-delete-btn" aria-label="Cancel delete saved setup {{name}}">Cancel</button>
+					<button type="button" class="confirm-delete-btn btn-warning" aria-label="Confirm delete saved setup {{name}}">Confirm Delete</button>
+					<button type="button" class="cancel-delete-btn btn-secondary" aria-label="Cancel delete saved setup {{name}}">Cancel</button>
 				</div>
 			</div>
 		</li>`,
@@ -825,7 +824,13 @@ document.querySelectorAll('.collapse-toggle').forEach(btn => {
 		const parent = e.target.closest('fieldset');
 		parent.classList.toggle('closed');
 		
-		scrollToElementWithOffset(parent, 150, 'auto');
+		const rect = parent.getBoundingClientRect();
+		const isAboveViewport = rect.top < 0;
+		const isBelowViewport = rect.top > window.innerHeight;
+		
+		if (isAboveViewport || isBelowViewport) {
+			scrollToElementWithOffset(parent, 150, 'auto');
+		}
 	});
 });
 
