@@ -1,7 +1,7 @@
 # Etsy Listing Price Calculator
 A simple, browser-based tool to help Etsy sellers determine optimal listing prices while accounting for the seller's fees.
 
-[Use the calculator now](todo)  
+[Use the calculator now](https://jluxeg.github.io/etsy-listing-price-calculator/)  
 coming soon - Video Demo
 
 ![Mockups showing the Etsy Listing Price Calculator on various devices](./img/elpc-mockup.jpg)
@@ -64,5 +64,6 @@ Found a bug or have an idea to make the tool better? [let me know](https://githu
 If you’d like to suggest an improvement or fix a bug, please check out the [CONTRIBUTING.md](./CONTRIBUTING.md) file for details.
 
 ## License
+Copyright (C) 2025 Justin Ludwig  
 This project is licensed under a [Business Source License (BSL 1.1)](./LICENSE).  
 You’re free to use this project to calculate and explore results, but the source code itself may not be copied, redistributed, or used commercially without permission.
