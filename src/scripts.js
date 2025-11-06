@@ -132,6 +132,7 @@ const templates = {
 		feesTotal
 		
 		listingPrice
+		returnTotal
 		
 		taxTotal
 		customerTotal
@@ -188,13 +189,17 @@ function clearInputs(){
 	
 	document.getElementById('sales-tax').value = 7.52;
 	document.getElementById('income-tax-rate').value = (30).toFixed(2);
-	document.querySelector('input[name="offsiteAdFee"][value="0"]').checked = true;
-	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
+	
+	document.querySelector('input[name="offsiteAdFee"][value="15"]').checked = true;
+	document.querySelector('input[name="offsiteAd"][value="ignore"]').checked = true;
+	offsiteAdHandler = 'ignore';
+	toggleOffsiteAdDisplay();
+	
 	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
 	incomeTaxHandler = 'ignore';
+	toggleIncomeTaxDisplay();
 	
 	updateProductHeading('clear');
-	toggleIncomeTaxHandler();
 	updateTotals();
 }
 
@@ -248,7 +253,7 @@ function addItem(list, replacements = {}, placement = 'append'){
 	const removeButton = newItem.querySelector('.line-item-remover');
 	if (nameInput && removeButton) {
 		const updateLabel = () => {
-			const val = sanitizeInput(nameInput.value) || 'blank';
+			const val = sanitizeInput(nameInput.value) || 'unnamed';
 			removeButton.setAttribute('aria-label', `Remove ${val} line item`);
 		};
 		nameInput.addEventListener('input', updateLabel);
@@ -331,90 +336,55 @@ shippingLabelInput.addEventListener('input', () => {
 const getOffsiteAdHandler = () => document.querySelector('input[name="offsiteAd"]:checked')?.value || 'ignore';
 let offsiteAdHandler = getOffsiteAdHandler();
 
-//update the offsite ad fee account when the radios are changed
+//update the offsite ad fee handler when the radios are changed
 document.querySelectorAll('input[name="offsiteAd"]').forEach(radio => {
 	radio.addEventListener('change', () => {
 		offsiteAdHandler = getOffsiteAdHandler();
-		toggleOffsiteAdHandler();
+		toggleOffsiteAdDisplay();
 		calculateListingPrice();
 	});
 });
 
 //toggle display in totals
-function toggleOffsiteAdHandler(){
+function toggleOffsiteAdDisplay(){
 	document.getElementById('offsite-ad-fee-total-li').classList.toggle('hidden', offsiteAdHandler === 'ignore');
 }
 
 //get the selected offsite ad rate to calculate with
-const getOffsiteAdRate = () => parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
-let offsiteAdRate = getOffsiteAdRate();
+function getOffsiteAdRate(){
+	if(offsiteAdHandler === 'ignore'){
+		return 0;
+	} else {
+		return parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
+	}
+}
 
 //update the offsite ad rate when the radios are changed
 document.querySelectorAll('input[name="offsiteAdFee"]').forEach(radio => {
 	radio.addEventListener('change', () => {
-		offsiteAdRate = getOffsiteAdRate();
 		calculateListingPrice();
 	});
 });
-
-/*
-function calculateOffsiteAdFee(){
-	
-	switch (offsiteAdHandler) {
-		case "ignore":
-			totals.incomeTaxTotal = 0;
-			break;
-		
-		case "view":
-			totals.incomeTaxTotal = totals.laborTotal * incomeTaxRate;
-			break;
-		
-		case "factor":
-			totals.incomeTaxTotal = (totals.laborTotal / (1 - incomeTaxRate)) - totals.laborTotal;
-			break;
-	}
-		
-	return incomeTaxRate;
-}
-
-*/
-/*
-	ok so what i want to do is::
-	
-	if ignore is selected:
-		hide the display of offsite ad fee in totals
-		do not factor the selected rate into the calculation
-		
-	if view is selected:
-		make sure offsite ad fee total is displayed
-		calculate the selected ad fee into the current amount without adding a buffer to account for the fee
-		this will let the user know how much it will take out from their net
-		-this has an effect on the income taxes, because ad fee is dedcutible through marketing
-		
-	if factor is selected:
-		make sure offsite ad fee total is displayed
-		factor the selected ad fee into the total amount to boost it accounting for the the ad fee, this will make it overall a little more
-		-this will technically have an effect on income tax, but won't in current calculation, since ad fee is deductible, and income tax is based on the labor total
-	
-*/
-
 
 // ===============================
 // income tax handlers
 // ===============================
 
+//set how we are going to take the income tax into account in the calculations
 const getIncomeTaxHandler = () => document.querySelector('input[name="incomeTax"]:checked')?.value || 'ignore';
 let incomeTaxHandler = getIncomeTaxHandler();
 
+//update the income tax handler when the radios are changed
 document.querySelectorAll('input[name="incomeTax"]').forEach(radio => {
 	radio.addEventListener('change', () => {
 		incomeTaxHandler = getIncomeTaxHandler();
-		toggleIncomeTaxHandler();
+		toggleIncomeTaxDisplay();
 		calculateListingPrice();
 	});
 });
 
-function toggleIncomeTaxHandler(){
+//toggle display in totals
+function toggleIncomeTaxDisplay(){
 	document.getElementById('set-aside-taxes').classList.toggle('hidden', incomeTaxHandler === 'ignore');
 }
 
@@ -422,6 +392,7 @@ function toggleIncomeTaxHandler(){
 function calculateIncomeTax(){
 	const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
 	
+	//this preps the total for income tax to set aside, not used in the listing price calculating so doing it here
 	switch (incomeTaxHandler) {
 		case "ignore":
 			totals.incomeTaxTotal = 0;
@@ -435,7 +406,8 @@ function calculateIncomeTax(){
 			totals.incomeTaxTotal = (totals.laborTotal / (1 - incomeTaxRate)) - totals.laborTotal;
 			break;
 	}
-		
+	
+	//returns the entered rate
 	return incomeTaxRate;
 }
 
@@ -451,94 +423,16 @@ function calculateListingPrice(){
 		totals.taxTotal = 0;
 		totals.customerTotal = 0;
 		totals.offsiteAdFeeTotal = 0;
+		totals.shippingLabelFeeTotal = 0;
+		totals.returnTotal = 0;
 		return;
 	}
 	
 	const incomeTaxRate = calculateIncomeTax();
+	const offsiteAdRate = getOffsiteAdRate();
 	const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
+	
 	let net;
-	
-	
-	/*
-		need to tighten up interplay between the net, offsite ad fee, and income tax
-		cases:
-		oaf: ignore, it: ignore--
-			nothing is factored
-			both total displays are hidden
-		
-		oaf: ignore, it: view--
-			oaf: display is hidden
-			oaf: is not factored
-			it: is calculated based on labor total
-			it: does not affect the listing price
-			it: does affect the total return
-		
-		oaf: ignore, it: factor--
-			oaf: display is hidden
-			oaf: is not factored
-			it: is calculated based on labor total + percentage to boost to cover for the it:
-			it: does affect the listing price
-			it: technically affects the total return, but does not compute as a difference because it is being accounted for
-		
-		oaf: view, it: ignore--
-			it: display is hidden
-			it: is not factored
-			oaf: is calculated based on the total amount customer paid minus sales tax
-			oaf: does not affect the listing price
-			oaf: does affect the return amount
-		
-		oaf: view, it: view--
-			both total displays are visible
-			both are not factored
-			it: is calculated based on labor total
-			oaf: is calculated based on the total amount customer paid minus sales tax
-			neither affect the listing price
-			both affect the return amount
-			
-		
-		oaf: view, it: factor--
-			both total displays are visible
-			oaf: is not factored
-			it: is calculated based on labor total + percentage to boost to cover for the it:
-			oaf: is calculated based on the total amount customer paid minus sales tax 
-			oaf: will be increased due to icome tax boost
-			it: affects the listing price
-			oaf: does not affect the listing price
-			it: technically affects the total return, but does not compute as a difference because it is being accounted for
-			oaf: affects the return total
-			
-		
-		oaf: factor, it: ignore--
-			it: display is hidden
-			it: is not factored
-			oaf: is factored based on the total amount customer paid minus sales tax + a boost to account for this percentage lost
-			oaf: will affect the listing price
-			oaf: will not affect the return total
-			
-		
-		oaf: factor, it: view--
-			both total displays are visible
-			it: is calculated based on labor total
-			oaf: is factored based on the total amount customer paid minus sales tax + a boost to account for this percentage lost
-			oaf: will affect the listing price
-			oaf: will not affect the return total
-			it: will affect the return total
-			it: will not affect the listing price
-			
-		
-		oaf: factor, it: factor--
-			both total displays are visible
-			oaf: is factored based on the total amount customer paid minus sales tax + a boost to account for this percentage lost
-			it: is calculated based on labor total + percentage to boost to cover for the it:
-			oaf: has to account for the extra boost to the total from it:
-			both with affect the listing price
-			neither will visibly affect the return total
-			
-	
-	
-	*/
-	
-	
 	if(incomeTaxHandler === 'factor'){
 		net = (totals.laborTotal / (1 - (incomeTaxRate || 0))) + totals.expensesTotal;
 	} else {
@@ -547,7 +441,13 @@ function calculateListingPrice(){
 	const shippingLabel = parseFloat(shippingLabelInput.value) || 0;
 	const salesTaxRate = parseFloat((parseFloat(document.getElementById('sales-tax').value) / 100).toFixed(4)) || 0; //formats from input 7.52 -> .0752
 	
-	const compoundRate = transactionRate + (processingRate * (1 + salesTaxRate)) + offsiteAdRate;
+	let compoundRate;
+	if(offsiteAdHandler === 'factor'){
+		compoundRate = transactionRate + (processingRate * (1 + salesTaxRate)) + offsiteAdRate;
+	} else {
+		compoundRate = transactionRate + (processingRate * (1 + salesTaxRate));
+	}
+	
 	const denominator = 1 - compoundRate;
 	if (denominator <= 0) return;
 	
@@ -562,6 +462,8 @@ function calculateListingPrice(){
 	totals.processingFeeTotal = round2((subtotal + tax) * processingRate) + processingFeeFlat;
 	totals.offsiteAdFeeTotal = round2(subtotal * offsiteAdRate);
 	totals.customerTotal = (subtotal + tax);
+	
+	totals.returnTotal = listingPrice - (totals.feesTotal + totals.incomeTaxTotal);
 }
 
 // ===============================
@@ -617,7 +519,9 @@ function isQuotaExceededError(error){
 
 function displayStorageError(){
 	document.body.classList.add("storage-full");
-	document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.storageFullWarning);
+	if(!document.getElementById('storage-full-warning')){
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.storageFullWarning);
+	}
 }
 function hideStorageError(){
 	document.body.classList.remove("storage-full");
@@ -626,9 +530,7 @@ function hideStorageError(){
 
 function isStorageSupported(){
 	try {
-		if(!localStorage){
-			return false;
-		}
+		if (typeof localStorage === 'undefined') return false;
 		const testKey = '__storage_test__';
 		localStorage.setItem(testKey, testKey);
 		localStorage.removeItem(testKey);
@@ -671,6 +573,7 @@ function saveProductSetup(){
 		labor: {},
 		shipping: shippingLabelInput.value,
 		tax: document.getElementById('sales-tax')?.value,
+		adFactor: offsiteAdHandler,
 		adRate: document.querySelector('input[name="offsiteAdFee"]:checked')?.value,
 		taxFactor: incomeTaxHandler,
 		taxRate: document.getElementById('income-tax-rate')?.value,
@@ -709,7 +612,7 @@ function saveProductSetup(){
 		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupUpdated);
 	} else {
 		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
-		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupSaved);
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupSaved); //todo: mske these like other templates
 	}
 	
 	document.getElementById('save-setup-btn').blur();
@@ -755,15 +658,18 @@ function loadManufacturingCosts(setup){
 //used when loading a saved setup
 function loadIndirectCosts(setup){
 	shippingLabelInput.value = setup.shipping;
+	totals.shippingLabelFeeTotal = round2(shippingLabelInput.value * 0.065);
 	document.getElementById('sales-tax').value = setup.tax;
-	document.getElementById('income-tax-rate').value = setup.taxRate;
 	
 	document.querySelector('input[name="offsiteAdFee"][value="'+setup.adRate+'"]').checked = true;
-	offsiteAdRate = parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked').value) / 100;
+	document.querySelector('input[name="offsiteAd"][value="'+setup.adFactor+'"]').checked = true;
+	offsiteAdHandler = setup.adFactor;
+	toggleOffsiteAdDisplay();
 	
+	document.getElementById('income-tax-rate').value = setup.taxRate;
 	document.querySelector('input[name="incomeTax"][value="'+setup.taxFactor+'"]').checked = true;
 	incomeTaxHandler = setup.taxFactor;
-	toggleIncomeTaxHandler();
+	toggleIncomeTaxDisplay();
 }
 
 // ===============================
@@ -826,12 +732,12 @@ function openModal(modal, focusEl){
 }
 
 function closeModal(){
-	const openModal = document.querySelector('.modal.open');
-	const modalCloseBtn = openModal.querySelector('.close-modal');
+	const modal = document.querySelector('.modal.open');
+	const modalCloseBtn = modal.querySelector('.close-modal');
 	const focusEl = modalCloseBtn.dataset.focusel;
 	
 	document.body.classList.remove('overflow');
-	openModal.classList.remove('open');
+	modal.classList.remove('open');
 	document.getElementById(focusEl).focus();
 }
 

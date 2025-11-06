@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Ignore, view, factor options for offsite ads like income tax
+
 ### Changed
 
 - Final styling like 99% in place (not sure if i'm in love with the button styles yet)

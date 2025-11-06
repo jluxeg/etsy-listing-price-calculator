@@ -8,15 +8,15 @@
 	without explicit permission from the author.
 -->
 <!--
-	//todo: finalize readme
+	
+	
 	//todo: once ready host on github pages
+	//todo: finalize readme
 	
 	//todo: update mockup image with proper url
 	//todo: og image and twitter image need full url
 	//todo: full url for multiple head items
 	
-	//todo: i think i want a similar factor radio set for the ad fees
-	//todo: should show the return amount in the totals
 	
 -->	
 <html lang="en">
@@ -180,14 +180,14 @@
 			<fieldset>
 				<legend class="h3 sticky-top-offset">Etsy Offsite Ad Fee Rate</legend>
 				<div class="clearfix"></div>
-				<p>This setting will factor an increase to account for ad fees, adjust it if you want to get an idea of what to expect.</p>
+				<p>These settings can be used to get an idea of what to expect if and offsite ad fee applies to an order.</p>
 				<div id="offsite-ad-info" class="more-info">
 					<button type="button" class="more-info-toggle" aria-controls="offsite-ad-info">Offsite Ad Rate Info</button>
 					<div class="more-info-body" aria-live="polite">
 						<p>Etsy will automatically advertise your listing on your behalf across social media and other channels. If someone clicks an ad and makes a purchase from your shop within 30 days a fee will be applied to your account. The percentage will be based off the total purchase amount, including shipping, minus taxes.</p>
 						<p>If you have made less than $10,000 in 365 days your ad fee will be 15%. You can disable the external advertising to avoid this, however this option is also tied into search engine results and can limit your listings appearing in normal search results (e.g. Google).</p>
 						<p>After you have made more than $10,000 in 365 days the fee will be 12% and you can not disable the option.</p>
-						<p>(At least these are usually deductible).</p>
+						<p>At least these fees are usually deductible. However, if you do factor the full amount into your price, and an ad fee is not applied to the order, that will increase your net that you owe income taxes on (this case is not currently factorable in the calculator).</p>
 					</div>
 				</div>
 				
@@ -200,9 +200,8 @@
 					</fieldset>
 					<fieldset>
 						<legend class="sr-only">Ad Rate</legend>
-						<!--<label class="radio-label"><input type="radio" name="offsiteAdFee" value="0" autocomplete="off" checked>0%</label>-->
 						<label class="radio-label"><input type="radio" name="offsiteAdFee" value="12" autocomplete="off">12%</label>
-						<label class="radio-label"><input type="radio" name="offsiteAdFee" value="15" autocomplete="off">15%</label>
+						<label class="radio-label"><input type="radio" name="offsiteAdFee" value="15" autocomplete="off" checked>15%</label>
 					</fieldset>
 				</div>
 			</fieldset>
@@ -214,8 +213,8 @@
 				<div id="income-tax-info" class="more-info">
 					<button type="button" class="more-info-toggle" aria-controls="income-tax-info">Income Tax Info</button>
 					<div class="more-info-body" aria-live="polite">
-						<p>They say if you are going to be self employed you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.</p>
-						<p>You can choose to ignore this in the calculation, view what you should set aside from your current amount, or factor this into your listing price to take home your net amount.</p>
+						<p>They say if you are going to be self employed (in the US) you should prepare for between 25% to 35% tax on your net profits (found here as the labor total) to cover your income taxes.</p>
+						<p>You can choose to ignore this in the calculation, view what you should set aside from your current amount (like if you're already accounting for taxes in your hourly rate), or factor this into your listing price to take home your net amount.</p>
 					</div>
 				</div>
 				
@@ -245,7 +244,7 @@
 					<li>Processing Fee: $<output id="processing-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
 					<li>Transaction Fee: $<output id="transaction-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
 					<li>Shipping Label Fee: $<output id="shipping-label-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
-					<li id="offsite-ad-fee-total-li">Offsite Ad Fee: $<output id="offsite-ad-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
+					<li id="offsite-ad-fee-total-li" class="hidden">Offsite Ad Fee: $<output id="offsite-ad-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
 				</ul>
 				<div class="total-line">
 					<label for="fees-total">Fees Total: $</label>
@@ -257,16 +256,17 @@
 				</div>
 				<div class="total-line">
 					<div>
-						<label for="customer-total">Total paid by customer: $</label>
-						<output id="customer-total" class="amount-display" role="status" aria-live="polite">0.00</output>
-					</div>
-					<div>
 						<label for="tax-total">Tax paid by customer: $</label>
 						<output id="tax-total" class="amount-display" role="status" aria-live="polite">0.00</output>
+					</div>
+					<div>
+						<label for="customer-total">Total paid by customer: $</label>
+						<output id="customer-total" class="amount-display" role="status" aria-live="polite">0.00</output>
 					</div>
 				</div>
 			</div>
 			<p>Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
+			<p>Total Return: $<output id="return-total" name="return-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
 			<div class="calculations">
 				<h3 id="totals-heading" aria-labelledby="save-product-name totals-heading">Suggested Listing Price: $<output id="listing-price" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
 				<button type="button" id="estimates-toggle" aria-controls="estimates">Fee Estimates</button>
