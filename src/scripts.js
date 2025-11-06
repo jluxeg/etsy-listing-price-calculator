@@ -105,7 +105,9 @@ const templates = {
 					<button type="button" class="cancel-delete-btn btn-secondary" aria-label="Cancel delete saved setup {{name}}">Cancel</button>
 				</div>
 			</div>
-		</li>`,
+		</li>`	
+};
+const notices = {
 	storageFullWarning: `<p id="storage-full-warning" class="warning" role="alert">Storage is full, remove some items to make room.</p>`,
 	storageNameWarning: `<p id="storage-name-warning" class="warning" role="alert">Please add a name to save.</p>`,
 	productSetupSaved: `<p id="product-setup-saved" class="success" role="alert">Product setup saved!</p>`,
@@ -124,7 +126,7 @@ const templates = {
 		laborHoursTotal //only for display, not calculation
 		valueTotal
 		
-		listingFeeTotal
+		listingFeeTotal // this should never change
 		processingFeeTotal
 		transactionFeeTotal
 		shippingLabelFeeTotal
@@ -185,19 +187,15 @@ function updateTotals(){
 function clearInputs(){
 	expensesList.querySelectorAll('li').forEach(li => li.remove());
 	laborList.querySelectorAll('li').forEach(li => li.remove());
+	
 	shippingLabelInput.value = '';
-	
 	document.getElementById('sales-tax').value = 7.52;
-	document.getElementById('income-tax-rate').value = (30).toFixed(2);
 	
+	setOffsiteAdHandler('ignore');
 	document.querySelector('input[name="offsiteAdFee"][value="15"]').checked = true;
-	document.querySelector('input[name="offsiteAd"][value="ignore"]').checked = true;
-	offsiteAdHandler = 'ignore';
-	toggleOffsiteAdDisplay();
 	
-	document.querySelector('input[name="incomeTax"][value="ignore"]').checked = true;
-	incomeTaxHandler = 'ignore';
-	toggleIncomeTaxDisplay();
+	setIncomeTaxHandler('ignore');
+	document.getElementById('income-tax-rate').value = (30).toFixed(2);
 	
 	updateProductHeading('clear');
 	updateTotals();
@@ -329,18 +327,21 @@ shippingLabelInput.addEventListener('input', () => {
 });
 
 // ===============================
-// offsite ad fee handler
+// offsite ad fee handlers
 // ===============================
 
-//set how we are going to take the offsite ad fee into account in the calculations
-const getOffsiteAdHandler = () => document.querySelector('input[name="offsiteAd"]:checked')?.value || 'ignore';
-let offsiteAdHandler = getOffsiteAdHandler();
+let offsiteAdHandler = 'ignore';
+
+function setOffsiteAdHandler(value) {
+	offsiteAdHandler = value;
+	document.querySelector(`input[name="offsiteAd"][value="${value}"]`).checked = true;
+	toggleOffsiteAdDisplay();
+}
 
 //update the offsite ad fee handler when the radios are changed
 document.querySelectorAll('input[name="offsiteAd"]').forEach(radio => {
 	radio.addEventListener('change', () => {
-		offsiteAdHandler = getOffsiteAdHandler();
-		toggleOffsiteAdDisplay();
+		setOffsiteAdHandler(radio.value);
 		calculateListingPrice();
 	});
 });
@@ -370,15 +371,18 @@ document.querySelectorAll('input[name="offsiteAdFee"]').forEach(radio => {
 // income tax handlers
 // ===============================
 
-//set how we are going to take the income tax into account in the calculations
-const getIncomeTaxHandler = () => document.querySelector('input[name="incomeTax"]:checked')?.value || 'ignore';
-let incomeTaxHandler = getIncomeTaxHandler();
+let incomeTaxHandler = 'ignore';
+
+function setIncomeTaxHandler(value) {
+	incomeTaxHandler = value;
+	document.querySelector(`input[name="incomeTax"][value="${value}"]`).checked = true;
+	toggleIncomeTaxDisplay();
+}
 
 //update the income tax handler when the radios are changed
 document.querySelectorAll('input[name="incomeTax"]').forEach(radio => {
 	radio.addEventListener('change', () => {
-		incomeTaxHandler = getIncomeTaxHandler();
-		toggleIncomeTaxDisplay();
+		setIncomeTaxHandler(radio.value);
 		calculateListingPrice();
 	});
 });
@@ -392,7 +396,7 @@ function toggleIncomeTaxDisplay(){
 function calculateIncomeTax(){
 	const incomeTaxRate = parseFloat((parseFloat(document.getElementById('income-tax-rate').value) / 100).toFixed(4)) || 0;
 	
-	//this preps the total for income tax to set aside, not used in the listing price calculating so doing it here
+	//this preps the total for income tax to set aside, value not specifically used in the listing price calculating so doing it here
 	switch (incomeTaxHandler) {
 		case "ignore":
 			totals.incomeTaxTotal = 0;
@@ -520,7 +524,7 @@ function isQuotaExceededError(error){
 function displayStorageError(){
 	document.body.classList.add("storage-full");
 	if(!document.getElementById('storage-full-warning')){
-		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.storageFullWarning);
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', notices.storageFullWarning);
 	}
 }
 function hideStorageError(){
@@ -562,7 +566,7 @@ function saveProductSetup(){
 	document.querySelector('#storage-name-warning')?.remove();
 	if(!saveName){
 		document.getElementById('save-setup-btn').blur();
-		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.storageNameWarning);
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', notices.storageNameWarning);
 		return;
 	}
 	
@@ -609,10 +613,10 @@ function saveProductSetup(){
 	if(listItem){
 		storageList.prepend(listItem); //want updated save files to go to the top of the list
 		listItem.querySelector('.file-name').textContent = saveName; //file names are not case sensative, but if they chage the case show it
-		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupUpdated);
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', notices.productSetupUpdated);
 	} else {
 		listItem = addItem(storageList, {name: saveName, key: keyName}, 'prepend');
-		document.getElementById('header-notices').insertAdjacentHTML('beforeend', templates.productSetupSaved); //todo: mske these like other templates
+		document.getElementById('header-notices').insertAdjacentHTML('beforeend', notices.productSetupSaved);
 	}
 	
 	document.getElementById('save-setup-btn').blur();
@@ -662,14 +666,10 @@ function loadIndirectCosts(setup){
 	document.getElementById('sales-tax').value = setup.tax;
 	
 	document.querySelector('input[name="offsiteAdFee"][value="'+setup.adRate+'"]').checked = true;
-	document.querySelector('input[name="offsiteAd"][value="'+setup.adFactor+'"]').checked = true;
-	offsiteAdHandler = setup.adFactor;
-	toggleOffsiteAdDisplay();
+	setOffsiteAdHandler(setup.adFactor);
 	
 	document.getElementById('income-tax-rate').value = setup.taxRate;
-	document.querySelector('input[name="incomeTax"][value="'+setup.taxFactor+'"]').checked = true;
-	incomeTaxHandler = setup.taxFactor;
-	toggleIncomeTaxDisplay();
+	setIncomeTaxHandler(setup.taxFactor);
 }
 
 // ===============================
