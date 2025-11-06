@@ -324,11 +324,88 @@ shippingLabelInput.addEventListener('input', () => {
 });
 
 // ===============================
+// offsite ad fee handler
+// ===============================
+
+//set how we are going to take the offsite ad fee into account in the calculations
+const getOffsiteAdHandler = () => document.querySelector('input[name="offsiteAd"]:checked')?.value || 'ignore';
+let offsiteAdHandler = getOffsiteAdHandler();
+
+//update the offsite ad fee account when the radios are changed
+document.querySelectorAll('input[name="offsiteAd"]').forEach(radio => {
+	radio.addEventListener('change', () => {
+		offsiteAdHandler = getOffsiteAdHandler();
+		toggleOffsiteAdHandler();
+		calculateListingPrice();
+	});
+});
+
+//toggle display in totals
+function toggleOffsiteAdHandler(){
+	document.getElementById('offsite-ad-fee-total-li').classList.toggle('hidden', offsiteAdHandler === 'ignore');
+}
+
+//get the selected offsite ad rate to calculate with
+const getOffsiteAdRate = () => parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
+let offsiteAdRate = getOffsiteAdRate();
+
+//update the offsite ad rate when the radios are changed
+document.querySelectorAll('input[name="offsiteAdFee"]').forEach(radio => {
+	radio.addEventListener('change', () => {
+		offsiteAdRate = getOffsiteAdRate();
+		calculateListingPrice();
+	});
+});
+
+/*
+function calculateOffsiteAdFee(){
+	
+	switch (offsiteAdHandler) {
+		case "ignore":
+			totals.incomeTaxTotal = 0;
+			break;
+		
+		case "view":
+			totals.incomeTaxTotal = totals.laborTotal * incomeTaxRate;
+			break;
+		
+		case "factor":
+			totals.incomeTaxTotal = (totals.laborTotal / (1 - incomeTaxRate)) - totals.laborTotal;
+			break;
+	}
+		
+	return incomeTaxRate;
+}
+
+*/
+/*
+	ok so what i want to do is::
+	
+	if ignore is selected:
+		hide the display of offsite ad fee in totals
+		do not factor the selected rate into the calculation
+		
+	if view is selected:
+		make sure offsite ad fee total is displayed
+		calculate the selected ad fee into the current amount without adding a buffer to account for the fee
+		this will let the user know how much it will take out from their net
+		-this has an effect on the income taxes, because ad fee is dedcutible through marketing
+		
+	if factor is selected:
+		make sure offsite ad fee total is displayed
+		factor the selected ad fee into the total amount to boost it accounting for the the ad fee, this will make it overall a little more
+		-this will technically have an effect on income tax, but won't in current calculation, since ad fee is deductible, and income tax is based on the labor total
+	
+*/
+
+
+// ===============================
 // income tax handlers
 // ===============================
 
 const getIncomeTaxHandler = () => document.querySelector('input[name="incomeTax"]:checked')?.value || 'ignore';
 let incomeTaxHandler = getIncomeTaxHandler();
+
 document.querySelectorAll('input[name="incomeTax"]').forEach(radio => {
 	radio.addEventListener('change', () => {
 		incomeTaxHandler = getIncomeTaxHandler();
@@ -363,24 +440,10 @@ function calculateIncomeTax(){
 }
 
 // ===============================
-// offsite ad fee handler
-// ===============================
-
-const getOffsiteAdRate = () => parseFloat(document.querySelector('input[name="offsiteAdFee"]:checked')?.value) / 100;
-let offsiteAdRate = getOffsiteAdRate();
-document.querySelectorAll('input[name="offsiteAdFee"]').forEach(radio => {
-	radio.addEventListener('change', () => {
-		offsiteAdRate = getOffsiteAdRate();
-		calculateListingPrice();
-	});
-});
-
-// ===============================
 // listing price calculations
 // ===============================
 
 function calculateListingPrice(){
-	const incomeTaxRate = calculateIncomeTax();
 	if(totals.valueTotal <= 0){ //get the displays back to zero if inputs are empty
 		totals.listingPrice = 0;
 		totals.processingFeeTotal = 0;
@@ -391,8 +454,91 @@ function calculateListingPrice(){
 		return;
 	}
 	
+	const incomeTaxRate = calculateIncomeTax();
 	const totalFlatFees = totals.listingFeeTotal + processingFeeFlat;
 	let net;
+	
+	
+	/*
+		need to tighten up interplay between the net, offsite ad fee, and income tax
+		cases:
+		oaf: ignore, it: ignore--
+			nothing is factored
+			both total displays are hidden
+		
+		oaf: ignore, it: view--
+			oaf: display is hidden
+			oaf: is not factored
+			it: is calculated based on labor total
+			it: does not affect the listing price
+			it: does affect the total return
+		
+		oaf: ignore, it: factor--
+			oaf: display is hidden
+			oaf: is not factored
+			it: is calculated based on labor total + percentage to boost to cover for the it:
+			it: does affect the listing price
+			it: technically affects the total return, but does not compute as a difference because it is being accounted for
+		
+		oaf: view, it: ignore--
+			it: display is hidden
+			it: is not factored
+			oaf: is calculated based on the total amount customer paid minus sales tax
+			oaf: does not affect the listing price
+			oaf: does affect the return amount
+		
+		oaf: view, it: view--
+			both total displays are visible
+			both are not factored
+			it: is calculated based on labor total
+			oaf: is calculated based on the total amount customer paid minus sales tax
+			neither affect the listing price
+			both affect the return amount
+			
+		
+		oaf: view, it: factor--
+			both total displays are visible
+			oaf: is not factored
+			it: is calculated based on labor total + percentage to boost to cover for the it:
+			oaf: is calculated based on the total amount customer paid minus sales tax 
+			oaf: will be increased due to icome tax boost
+			it: affects the listing price
+			oaf: does not affect the listing price
+			it: technically affects the total return, but does not compute as a difference because it is being accounted for
+			oaf: affects the return total
+			
+		
+		oaf: factor, it: ignore--
+			it: display is hidden
+			it: is not factored
+			oaf: is factored based on the total amount customer paid minus sales tax + a boost to account for this percentage lost
+			oaf: will affect the listing price
+			oaf: will not affect the return total
+			
+		
+		oaf: factor, it: view--
+			both total displays are visible
+			it: is calculated based on labor total
+			oaf: is factored based on the total amount customer paid minus sales tax + a boost to account for this percentage lost
+			oaf: will affect the listing price
+			oaf: will not affect the return total
+			it: will affect the return total
+			it: will not affect the listing price
+			
+		
+		oaf: factor, it: factor--
+			both total displays are visible
+			oaf: is factored based on the total amount customer paid minus sales tax + a boost to account for this percentage lost
+			it: is calculated based on labor total + percentage to boost to cover for the it:
+			oaf: has to account for the extra boost to the total from it:
+			both with affect the listing price
+			neither will visibly affect the return total
+			
+	
+	
+	*/
+	
+	
 	if(incomeTaxHandler === 'factor'){
 		net = (totals.laborTotal / (1 - (incomeTaxRate || 0))) + totals.expensesTotal;
 	} else {

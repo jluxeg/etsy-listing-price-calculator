@@ -8,7 +8,7 @@
 	without explicit permission from the author.
 -->
 <!--
-	//todo: fill out readme
+	//todo: finalize readme
 	//todo: once ready host on github pages
 	
 	//todo: update mockup image with proper url
@@ -16,6 +16,7 @@
 	//todo: full url for multiple head items
 	
 	//todo: i think i want a similar factor radio set for the ad fees
+	//todo: should show the return amount in the totals
 	
 -->	
 <html lang="en">
@@ -190,12 +191,20 @@
 					</div>
 				</div>
 				
-				<fieldset>
-					<legend class="sr-only">Ad Rate</legend>
-					<label class="radio-label"><input type="radio" name="offsiteAdFee" value="0" autocomplete="off" checked>0%</label>
-					<label class="radio-label"><input type="radio" name="offsiteAdFee" value="12" autocomplete="off">12%</label>
-					<label class="radio-label"><input type="radio" name="offsiteAdFee" value="15" autocomplete="off">15%</label>
-				</fieldset>
+				<div class="med-one-line">
+					<fieldset>
+						<legend class="sr-only">Offsite Ad Calculation</legend>
+						<label class="radio-label"><input type="radio" name="offsiteAd" value="ignore" autocomplete="off" checked>Ignore</label>
+						<label class="radio-label"><input type="radio" name="offsiteAd" value="view" autocomplete="off">View</label>
+						<label class="radio-label"><input type="radio" name="offsiteAd" value="factor" autocomplete="off">Factor</label>
+					</fieldset>
+					<fieldset>
+						<legend class="sr-only">Ad Rate</legend>
+						<!--<label class="radio-label"><input type="radio" name="offsiteAdFee" value="0" autocomplete="off" checked>0%</label>-->
+						<label class="radio-label"><input type="radio" name="offsiteAdFee" value="12" autocomplete="off">12%</label>
+						<label class="radio-label"><input type="radio" name="offsiteAdFee" value="15" autocomplete="off">15%</label>
+					</fieldset>
+				</div>
 			</fieldset>
 			
 			<fieldset>
@@ -236,7 +245,7 @@
 					<li>Processing Fee: $<output id="processing-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
 					<li>Transaction Fee: $<output id="transaction-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
 					<li>Shipping Label Fee: $<output id="shipping-label-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
-					<li>Offsite Ad Fee: $<output id="offsite-ad-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
+					<li id="offsite-ad-fee-total-li">Offsite Ad Fee: $<output id="offsite-ad-fee-total" class="fee-total amount-display" role="status" aria-live="polite">0.00</output></li>
 				</ul>
 				<div class="total-line">
 					<label for="fees-total">Fees Total: $</label>
