@@ -30,7 +30,7 @@ self.addEventListener('install', event => {
 			await cache.addAll(FILES_TO_CACHE);
 		})()
 	);
-	self.skipWaiting(); //activate immediately
+	//self.skipWaiting(); //activate immediately, using a modal to notify and button instead
 });
 
 //activate: remove old caches
