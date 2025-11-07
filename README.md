@@ -52,8 +52,9 @@ Then you can easily get back and make updates quickly. With the append option yo
 ## Possible Enhancements
 - Currently built towards US based Etsy shops, so figuring out and adding in other countries fee setups could be helpful for more users.
 - A system to save/print pdfs of setups for invoicing or personal records could be helpful, nice if there's the ability to add logo and header info for a professional touch.
-- Might make into an ionic app if user desire is there.
+- Might make into an app (ionic or otherwise) if user desire is there, but the manifest does a decent job right now.
 - Maybe line-items could be re-ordered with drag and drop if the value is there.
+- Might add an import/export for save files, since they are tied to device and browser using local storage and no capability for user profiles.
 - On the dev side scripts and styles could be packaged and minified, but for now it's still relatively small, so maybe later.
 
 

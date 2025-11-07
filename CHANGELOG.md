@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Ignore, view, factor options for offsite ads like income tax
+- Finalized PWA setup for simple home screen apps
 
 ### Changed
 
-- Final styling like 99% in place (not sure if i'm in love with the button styles yet)
+- Final styling and layout
 - Made the header the save name field for better mobile experience
 
 ### Fixed

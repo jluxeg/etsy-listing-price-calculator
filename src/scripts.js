@@ -753,6 +753,15 @@ document.body.addEventListener('click', e => {
 	}
 });
 
+document.addEventListener('keydown', e => {
+	if (e.key === 'Escape') {
+		const modal = document.querySelector('.modal.open');
+		if(modal){
+			closeModal();
+		}
+	}
+});
+
 // ===============================
 // display adjustments
 // ===============================
@@ -886,3 +895,38 @@ document.querySelectorAll('.collapse-toggle').forEach(btn => {
 	});
 });
 
+
+
+// ===============================
+// service-worker for pwa
+// ===============================
+
+document.addEventListener('DOMContentLoaded', () => {
+	if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('/service-worker.js')
+			.then(reg => {
+				console.log('Service worker registered.');
+	
+				//listen for updates
+				reg.onupdatefound = () => {
+					const newWorker = reg.installing;
+					newWorker.onstatechange = () => {
+						if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+							//show update button
+							openModal('update-available', 'update-app');
+							const btn = document.getElementById('update-app');
+							btn.addEventListener('click', () => {
+								newWorker.postMessage({ action: 'skipWaiting' });
+							}, { once: true });
+						}
+					};
+				};
+			})
+			.catch(err => console.error('Service worker registration failed:', err));
+	
+		//reload page when new service worker activates
+		navigator.serviceWorker.addEventListener('controllerchange', () => {
+			window.location.reload();
+		});
+	}
+});

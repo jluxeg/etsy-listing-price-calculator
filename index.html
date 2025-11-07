@@ -14,6 +14,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="theme-color" content="#ffffff">
+	<meta name="background-color" content="#ffffff">
 	
 	<title>Listing Price Calculator for Etsy Sellers</title>
 	<meta name="description" content="Easily calculate your Etsy listing prices including materials, labor, fees, taxes, and profits. Accessible and responsive tool for sellers.">
@@ -33,11 +34,15 @@
 	<meta name="twitter:url" content="https://jluxeg.github.io/etsy-listing-price-calculator/">
 	<meta name="twitter:image" content="https://jluxeg.github.io/etsy-listing-price-calculator/img/elpc-mockup.jpg">
 	
-	<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
-	<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+	<link rel="icon" type="image/png" href="icons/favicon-96x96.png" sizes="96x96" />
+	<link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
 	<link rel="shortcut icon" href="favicon.ico" />
-	<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+	<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+	
 	<link rel="manifest" href="site.webmanifest" />
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<meta name="apple-mobile-web-app-title" content="Etsy Listing Price Calculator">
 	
 	<script type="application/ld+json">
 	{
@@ -256,7 +261,7 @@
 				</div>
 			</div>
 			<p>Product Value: $<output id="value-total" name="value-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
-			<p>Total Return: $<output id="return-total" name="return-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
+			<p>Estimated Return: $<output id="return-total" name="return-total" class="amount-display" role="status" aria-live="polite">0.00</output></p>
 			<div class="calculations">
 				<h3 id="totals-heading" aria-labelledby="save-product-name totals-heading">Suggested Listing Price: $<output id="listing-price" class="amount-display" role="status" aria-live="polite">0.00</output></h3>
 				<button type="button" id="estimates-toggle" aria-controls="estimates">Fee Estimates</button>
@@ -287,6 +292,15 @@
 			<h2>Saved Product Setups</h2>
 			<p id="nothing-saved-notice">Nothing saved yet.</p>
 			<ul id="storage-list" aria-label="Saved product setups list" tabindex="-1"></ul>
+		</div>
+	</section>
+	
+	<section id="update-available" class="modal" style="text-align: center;">
+		<button type="button" id="close-update-available" class="close-modal" data-focusel="save-product-name" aria-label="Close update available modal">×</button>
+		<div class="modal-body">
+			<h2>Update available</h2>
+			<p>Update will be installed automatically next time you open the app.<br/> -or-</p>
+			<button type="button" id="update-app" class="btn-warning">Update now</button>
 		</div>
 	</section>
 	
