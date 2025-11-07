@@ -8,7 +8,9 @@ const FILES_TO_CACHE = [
 	'./src/scripts.js',
 	MANIFEST_PATH,
 	'./icons/web-app-manifest-192x192.png',
-	'./icons/web-app-manifest-512x512.png'
+	'./icons/web-app-manifest-512x512.png',
+	'./img/folder.svg',
+	'./img/save-file.svg'
 ];
 
 //fetch version from manifest
