@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- nothing yet
+
+## [v1.0.0] - 2025-11-06
+
 ### Added
 
 - Ignore, view, factor options for offsite ads like income tax
@@ -55,7 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial tool release to calculate suitable Etsy seller listing prices based on fees
 
-[unreleased]: https://github.com/jluxeg/etsy-listing-price-calculator/compare/v0.2.0...HEAD
-[v0.1.0]: https://github.com/jluxeg/etsy-listing-price-calculator/compare/v0.1.0...v0.2.0
+[unreleased]: https://github.com/jluxeg/etsy-listing-price-calculator/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/jluxeg/etsy-listing-price-calculator/compare/v0.2.0...v1.0.0
+[v0.2.0]: https://github.com/jluxeg/etsy-listing-price-calculator/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/jluxeg/etsy-listing-price-calculator/compare/v0.0.1...v0.1.0
 [v0.0.1]: https://github.com/jluxeg/etsy-listing-price-calculator/releases/tag/v0.0.1
