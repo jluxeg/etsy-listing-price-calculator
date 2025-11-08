@@ -8,6 +8,7 @@
 */
 
 
+
 // ===============================
 // utility functions
 // ===============================
@@ -427,7 +428,6 @@ function calculateListingPrice(){
 		totals.taxTotal = 0;
 		totals.customerTotal = 0;
 		totals.offsiteAdFeeTotal = 0;
-		totals.shippingLabelFeeTotal = 0;
 		totals.returnTotal = 0;
 		return;
 	}
