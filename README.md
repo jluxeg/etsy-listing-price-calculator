@@ -67,4 +67,6 @@ If you’d like to suggest an improvement or fix a bug, please check out the [CO
 ## License
 Copyright (C) 2025 Justin Ludwig  
 This project is licensed under a [Business Source License (BSL 1.1)](./LICENSE).  
+It includes code from [The Normalize Project](https://github.com/necolas/normalize.css), licensed under the MIT License.  
+It includes code from [The Roboto Flex Project](https://github.com/TypeNetwork/Roboto-Flex), licensed under the SIL Open Font License, Version 1.1.  
 You’re free to use this project to calculate and explore results, but the source code itself may not be copied, redistributed, or used commercially without permission.

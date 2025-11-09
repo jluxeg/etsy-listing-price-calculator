@@ -4,6 +4,9 @@ let CURRENT_CACHE = null;
 const FILES_TO_CACHE = [
 	'./',
 	'./index.html',
+	'./src/normalize.css',
+	'./font/Roboto_Flex/RobotoFlex.css',
+	'./font/Roboto_Flex/RobotoFlex.woff2',
 	'./src/styles.css',
 	'./src/scripts.js',
 	MANIFEST_PATH,

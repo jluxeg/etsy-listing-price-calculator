@@ -1,6 +1,6 @@
 {
   "name": "Etsy Listing Price Calculator",
-  "short_name": "EtsyListingPriceCalculator",
+  "short_name": "Etsy Listing Price Calculator",
   "start_url": "/etsy-listing-price-calculator/",
   "description": "A tool to calculate Etsy listing prices including materials, labor, fees, taxes, and profits.",
   "icons": [
