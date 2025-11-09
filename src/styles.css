@@ -140,6 +140,10 @@ ul.p {
 	margin-top: 0;
 }
 
+a {
+	display: inline-block;
+}
+
 /*************************
 	layout
 *************************/
