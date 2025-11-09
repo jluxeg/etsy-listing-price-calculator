@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - nothing yet
 
-## [v1.0.0] - 2025-11-06
+## [v1.0.0] - 2025-11-08
 
 ### Added
 
@@ -20,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Final styling and layout
 - Made the header the save name field for better mobile experience
+- Localized external resources
 
 ### Fixed
 
 - Factoring income tax now calculates so that you end up with your base net amount after the amount to set aside for taxes
+- Shipping label fee got stuck at 0 sometimes
 
 ## [v0.2.0] - 2025-10-23
 

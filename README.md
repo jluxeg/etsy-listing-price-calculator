@@ -2,7 +2,7 @@
 A simple, browser-based tool to help Etsy sellers determine optimal listing prices while accounting for the seller's fees.
 
 [Use the calculator now](https://jluxeg.github.io/etsy-listing-price-calculator/)  
-coming soon - Video Demo
+[Video Overview](https://youtu.be/Kmm0aA6VaC0)  
 
 ![Mockups showing the Etsy Listing Price Calculator on various devices](./img/elpc-mockup.jpg)
 
